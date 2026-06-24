@@ -74,11 +74,14 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
   const tax = subtotal * restaurant.taxRate;
   const service = subtotal > 0 ? restaurant.serviceCharge : 0;
 
+  let orderCounter = parseInt(localStorage.getItem('order_counter') || '100');
   const placeOrder = async () => {
     if (cartCount === 0) return;
+    orderCounter++;
+    localStorage.setItem('order_counter', String(orderCounter));
     const items = cartArr.map(c => ({ menuItemId: c.item.id, quantity: c.qty, priceAtOrder: c.item.price, notes: c.notes || '' }));
     const order = {
-      id: `order-${Date.now()}`,
+      id: `order-${orderCounter}`,
       tableId: table.id,
       restaurantId: restaurant.id,
       items: items.map((it, idx) => ({ id: `oi-${idx}-${Date.now()}`, ...it })),
