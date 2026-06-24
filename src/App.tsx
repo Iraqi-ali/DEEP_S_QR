@@ -194,7 +194,9 @@ export default function App() {
 
     const order = orders.find(o => o.id === orderId);
     if (order) {
-      const statusMap: Record<string, Table['status']> = { preparing: 'waiting', ready: 'waiting', served: 'eating', paid: 'empty' };
+      const statusMap: Record<string, Table['status']> = { 
+        pending: 'occupied', preparing: 'waiting', ready: 'waiting', served: 'eating', paid: 'dirty' 
+      };
       const tbStatus = statusMap[status];
       if (tbStatus) {
         setTables(prev => prev.map(tb => tb.id === order.tableId ? { ...tb, status: tbStatus } : tb));
@@ -268,14 +270,19 @@ export default function App() {
     }
   };
 
+  // ── Notification counts ──────────────────────────────────
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  const activeOrdersCount = orders.filter(o => o.status === 'pending' || o.status === 'preparing').length;
+  const dirtyTablesCount = tables.filter(t => t.status === 'dirty').length;
+
   // ── Navigation config ─────────────────────────────────────
   const navItems = [
-    { tab: 'dashboard' as ActiveTab, icon: LayoutDashboard, label: t.tabDashboard },
-    { tab: 'tables' as ActiveTab, icon: TableIcon, label: isRTL ? 'الطاولات' : 'Tables' },
-    { tab: 'menu' as ActiveTab, icon: Salad, label: isRTL ? 'الأطعمة' : 'Food Menu' },
-    { tab: 'orders' as ActiveTab, icon: ChefHat, label: isRTL ? 'المطبخ' : 'Kitchen' },
-    { tab: 'themes' as ActiveTab, icon: Palette, label: isRTL ? 'الثيمات' : 'Themes' },
-    { tab: 'reports' as ActiveTab, icon: TrendingUp, label: isRTL ? 'التقارير' : 'Reports' },
+    { tab: 'dashboard' as ActiveTab, icon: LayoutDashboard, label: t.tabDashboard, badge: 0 },
+    { tab: 'tables' as ActiveTab, icon: TableIcon, label: isRTL ? 'الطاولات' : 'Tables', badge: dirtyTablesCount },
+    { tab: 'menu' as ActiveTab, icon: Salad, label: isRTL ? 'الأطعمة' : 'Food Menu', badge: 0 },
+    { tab: 'orders' as ActiveTab, icon: ChefHat, label: isRTL ? 'المطبخ' : 'Kitchen', badge: activeOrdersCount },
+    { tab: 'themes' as ActiveTab, icon: Palette, label: isRTL ? 'الثيمات' : 'Themes', badge: 0 },
+    { tab: 'reports' as ActiveTab, icon: TrendingUp, label: isRTL ? 'التقارير' : 'Reports', badge: 0 },
     { tab: 'settings' as ActiveTab, icon: Settings, label: t.tabSettings },
   ];
 
@@ -334,11 +341,16 @@ export default function App() {
         {/* Bottom navigation */}
         <div className="fixed bottom-0 inset-x-0 z-30 flex justify-center px-4 pb-4 pt-2 bg-gradient-to-t from-[#f2f2f7] dark:from-zinc-950 to-transparent">
           <div className="flex items-center justify-around rounded-2xl bg-white/90 p-1.5 shadow-lg border border-slate-200/50 backdrop-blur-xl dark:bg-zinc-900/90 dark:border-zinc-800/60 w-full max-w-2xl">
-            {navItems.map(({ tab, icon: Icon, label }) => {
+            {navItems.map(({ tab, icon: Icon, label, badge }) => {
               const isActive = activeTab === tab;
               return (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={'flex flex-col items-center gap-1 rounded-2xl py-2 px-3 transition-all ' + (isActive ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200')}>
+                <button key={tab} onClick={() => setActiveTab(tab)} className={'relative flex flex-col items-center gap-1 rounded-2xl py-2 px-3 transition-all ' + (isActive ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200')}>
                   <Icon size={16} />
+                  {badge > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center shadow-md animate-pulse">
+                      {badge > 9 ? '9+' : badge}
+                    </span>
+                  )}
                   <span className="text-[9px] font-bold tracking-tight">{label}</span>
                 </button>
               );
