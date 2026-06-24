@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'motion/react';
-import { TrendingUp, Users, ChefHat, Award, ArrowLeft, ArrowRight, Table as TableIcon, CheckCircle, Flame, Clock, Smartphone } from 'lucide-react';
+import { TrendingUp, Users, ChefHat, Award, ArrowLeft, ArrowRight, Table as TableIcon, CheckCircle, Flame, Clock } from 'lucide-react';
 import { Order, MenuItem, Table, Restaurant, Lang } from '../types';
 import { TRANSLATIONS } from '../data';
 
@@ -100,12 +100,12 @@ export default function DashboardView({
           </p>
         </div>
 
-        {/* Quick Simulator Link Button */}
+        {/* External Orders Button */}
         <button
-          onClick={() => onNavigate('customer-simulator')}
-          className="flex h-10 px-5 items-center justify-center gap-1.5 rounded-full bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition"
+          onClick={() => window.open('/?tableId=tb-delivery', '_blank')}
+          className="flex h-10 px-5 items-center justify-center gap-1.5 rounded-full bg-green-500 text-white text-xs font-black shadow-lg shadow-green-500/20 hover:bg-green-600 transition"
         >
-          <span>{isRTL ? 'جرب واجهة الزبون 📱' : 'Launch Guest View 📱'}</span>
+          <span>{isRTL ? '🚀 طلب خارجي' : '🚀 External Order'}</span>
         </button>
       </div>
 
@@ -245,7 +245,7 @@ export default function DashboardView({
               </h3>
             </div>
             <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-sans">
-              {isRTL ? 'اضغط لتغيير الحالة • اضغط 📱 للمحاكاة' : 'Click to change status • Click 📱 to simulate'}
+              {isRTL ? 'اضغط لتغيير حالة الطاولة' : 'Click to change table status'}
             </span>
           </div>
 
@@ -267,19 +267,6 @@ export default function DashboardView({
                   }}
                   className={`relative group p-4 rounded-3xl border text-center cursor-pointer transition-all ${statusClass}`}
                 >
-                  {/* Explicit Simulation Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // prevent cycling status
-                      onSimulateScan(table.id);
-                    }}
-                    className="absolute top-2 right-2 flex h-6 items-center gap-1 rounded-full bg-white/95 dark:bg-zinc-800/95 px-2 text-[9px] font-extrabold text-blue-600 shadow-sm border border-slate-100 dark:border-zinc-700/60 transition hover:bg-blue-500 hover:text-white"
-                    title={isRTL ? 'محاكاة طلب زبون الطاولة' : 'Simulate Guest Ordering'}
-                  >
-                    <Smartphone size={10} className="shrink-0" />
-                    <span>{isRTL ? 'زبون' : 'Guest'}</span>
-                  </button>
-
                   <span className="text-2xl block mt-2">🪑</span>
                   <h4 className="text-xs font-display font-extrabold mt-1.5">{table.number}</h4>
                   <p className="text-[10px] opacity-80 mt-0.5">{getTableLabel(table.status)}</p>

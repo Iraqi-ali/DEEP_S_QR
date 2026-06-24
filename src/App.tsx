@@ -14,7 +14,6 @@ import { INITIAL_RESTAURANTS, INITIAL_TABLES, INITIAL_MENU_ITEMS, THEMES_LIST, I
 import { api } from './api';
 
 // Import sub-views
-import DynamicIsland from './components/DynamicIsland';
 import DashboardView from './components/DashboardView';
 import TablesView from './components/TablesView';
 import MenuView from './components/MenuView';
@@ -315,7 +314,6 @@ export default function App() {
   // ── Render ────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f2f2f7] text-slate-800 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100 font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
-      <DynamicIsland notification={notification} onClear={() => setNotification(null)} lang={lang} />
 
         {/* Back button */}
         {activeTab !== 'dashboard' && (

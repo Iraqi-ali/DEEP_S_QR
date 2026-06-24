@@ -107,7 +107,7 @@ export default function OrdersView({
 
         {activeOrders.length === 0 ? (
           <div className="rounded-[2rem] bg-white/50 border border-dashed border-slate-200 p-12 text-center text-slate-400 dark:bg-zinc-900/40 dark:border-zinc-800 font-sans">
-            {isRTL ? 'لا توجد أي طلبات نشطة قادمة من الطاولات حالياً. جرب فتح محاكي الزبون والطلب!' : 'No active kitchen tickets. Scan a table QR and place an order to simulate!'}
+            {isRTL ? 'لا توجد طلبات نشطة حالياً.' : 'No active kitchen tickets.'}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

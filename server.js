@@ -50,7 +50,8 @@ if (store.restaurants.length === 0) {
     { id: 'tb-3', number: 'طاولة 3 (VIP)', capacity: 6, status: 'waiting', qrCodeSeed: 'table-3-seed-104', restaurantId: 'rest-1' },
     { id: 'tb-4', number: 'طاولة 4 (عائلية)', capacity: 8, status: 'eating', qrCodeSeed: 'table-4-seed-443', restaurantId: 'rest-1' },
     { id: 'tb-5', number: 'طاولة 5 (خارجية)', capacity: 2, status: 'dirty', qrCodeSeed: 'table-5-seed-729', restaurantId: 'rest-1' },
-    { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331', restaurantId: 'rest-1' }
+    { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331', restaurantId: 'rest-1' },
+    { id: 'tb-delivery', number: '🚀 طلبات خارجية', capacity: 99, status: 'empty', qrCodeSeed: 'delivery-seed-001', restaurantId: 'rest-1' }
   ];
   store.menu_items = [
     { id: 'item-101', nameAr: 'كباب عراقي على الفحم', nameEn: 'Iraqi Charcoal Kebab', price: 12000, category: 'مشاوي', image: '🍢', descriptionAr: 'كباب لحم عراقي متبل مشوي على الفحم.', descriptionEn: 'Charcoal-grilled Iraqi kebab.', available: true, isPopular: true, restaurantId: 'rest-1' },
