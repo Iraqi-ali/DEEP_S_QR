@@ -9,7 +9,7 @@ import {
   Palette, TrendingUp, Settings, ChevronLeft
 } from 'lucide-react';
 
-import type { ActiveTab, ThemeMode, Lang, Restaurant, Table, MenuItem, Order, NotificationPayload, OrderItem } from './types';
+import type { ActiveTab, ThemeMode, Lang, Restaurant, Table, MenuItem, Order, NotificationPayload } from './types';
 import { INITIAL_RESTAURANTS, INITIAL_TABLES, INITIAL_MENU_ITEMS, THEMES_LIST, INITIAL_ORDERS, TRANSLATIONS } from './data';
 import { api } from './api';
 
@@ -206,28 +206,6 @@ export default function App() {
       }
     }
     notify(isRTL ? 'تحديث حالة التحضير' : 'Order Updated', isRTL ? `الحالة: ${status}` : `Status: ${status}`);
-  };
-
-  const handleSubmitCustomerOrder = (items: Omit<OrderItem, 'id'>[]) => {
-    const subtotal = items.reduce((s, i) => s + i.priceAtOrder * i.quantity, 0);
-    const tax = subtotal * currentRestaurant.taxRate;
-    const service = subtotal > 0 ? currentRestaurant.serviceCharge : 0;
-
-    const order: Order = {
-      id: `order-${Date.now()}`,
-      tableId: selectedSimulatorTableId,
-      restaurantId: activeRestaurantId,
-      items: items.map((it, idx) => ({ id: `oi-${idx}-${Date.now()}`, ...it })),
-      subtotal, tax, service, total: subtotal + tax + service,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-
-    setOrders(prev => [order, ...prev]);
-    api.createOrder(order).catch(() => {});
-    handleUpdateTableStatus(selectedSimulatorTableId, 'waiting');
-    notify(isRTL ? 'جاءك طلب جديد للمطبخ! 🧑‍🍳' : 'New Order! 🧑‍🍳',
-      isRTL ? `طلب من ${tables.find(tb => tb.id === selectedSimulatorTableId)?.number}` : `From ${tables.find(tb => tb.id === selectedSimulatorTableId)?.number}`);
   };
 
   const handleUpdateRestaurant = (r: Restaurant) => {
