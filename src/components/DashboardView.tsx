@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'motion/react';
-import { TrendingUp, Users, ChefHat, Award, ArrowLeft, ArrowRight, Table as TableIcon, CheckCircle, Flame, Clock } from 'lucide-react';
+import { TrendingUp, Users, ChefHat, Award, Table as TableIcon, CheckCircle, Clock, CreditCard } from 'lucide-react';
 import { Order, MenuItem, Table, Restaurant, Lang } from '../types';
 import { TRANSLATIONS } from '../data';
 
@@ -18,6 +18,7 @@ interface DashboardViewProps {
   onNavigate: (tab: any) => void;
   onSimulateScan: (tableId: string) => void;
   onUpdateTableStatus?: (tableId: string, status: Table['status']) => void;
+  onUpdateOrderStatus?: (orderId: string, status: Order['status']) => void;
 }
 
 export default function DashboardView({
@@ -29,7 +30,8 @@ export default function DashboardView({
   lang,
   onNavigate,
   onSimulateScan,
-  onUpdateTableStatus
+  onUpdateTableStatus,
+  onUpdateOrderStatus
 }: DashboardViewProps) {
   const isRTL = lang === 'ar';
   const t = TRANSLATIONS[lang];
@@ -234,6 +236,38 @@ export default function DashboardView({
           </div>
         </motion.div>
       </div>
+
+      {/* Pending Payment Section (Before Eating Mode) */}
+      {currentRestaurant.paymentMode === 'before' && (() => {
+        const pendingPayments = orders.filter(o => o.status === 'pending');
+        if (pendingPayments.length === 0) return null;
+        return (
+          <div className="rounded-2xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <CreditCard size={18} className="text-amber-600" />
+              <h3 className="text-[14px] font-extrabold text-amber-800 dark:text-amber-400">
+                {isRTL ? `💳 طلبات بانتظار الدفع (${pendingPayments.length})` : `💳 Pending Payment (${pendingPayments.length})`}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {pendingPayments.map(order => (
+                <div key={order.id} className="flex items-center justify-between bg-white/60 dark:bg-zinc-900/60 rounded-xl p-3">
+                  <div>
+                    <p className="text-xs font-bold">#{order.id.split('-')[1]} - {tables.find(t => t.id === order.tableId)?.number || order.tableId}</p>
+                    <p className="text-[10px] opacity-60">{order.total.toLocaleString()} {currentRestaurant.currency}</p>
+                  </div>
+                  <button
+                    onClick={() => onUpdateOrderStatus?.(order.id, 'preparing')}
+                    className="rounded-full bg-green-500 px-4 py-1.5 text-[10px] font-bold text-white hover:bg-green-600"
+                  >
+                    {isRTL ? '✅ تأكيد الدفع' : '✅ Confirm'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Main Grid: Rooms table map & bestseller dishes split */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

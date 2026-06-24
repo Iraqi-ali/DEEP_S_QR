@@ -266,7 +266,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardView orders={orders} menuItems={menuItems} tables={tables} restaurants={restaurants} activeRestaurantId={activeRestaurantId} lang={lang} onNavigate={setActiveTab} onSimulateScan={handleSimulateScan} onUpdateTableStatus={handleUpdateTableStatus} />;
+        return <DashboardView orders={orders} menuItems={menuItems} tables={tables} restaurants={restaurants} activeRestaurantId={activeRestaurantId} lang={lang} onNavigate={setActiveTab} onSimulateScan={handleSimulateScan} onUpdateTableStatus={handleUpdateTableStatus} onUpdateOrderStatus={(id, status) => handleUpdateOrderStatus(id, status)} />;
       case 'tables':
         return <TablesView tables={tables} onAddTable={handleAddTable} onDeleteTable={handleDeleteTable} onSimulateScan={handleSimulateScan} onUpdateTableStatus={handleUpdateTableStatus} lang={lang} restaurantName={currentRestaurant.name} restaurantLogo={currentRestaurant.logo} />;
       case 'menu':
