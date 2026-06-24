@@ -111,7 +111,12 @@ export default function App() {
         if (diff.length > 0 && lastKnownOrderIds.size > 0) {
           const newOrder = fresh.find(o => diff.includes(o.id));
           if (newOrder) {
-            setNotification({ title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`, type: 'success' });
+            const isBeforeMode = currentRestaurant.paymentMode === 'before';
+            if (isBeforeMode) {
+              setNotification({ title: isRTL ? '💳 طلب بانتظار الدفع!' : '💳 Payment Required!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'} - اذهب للمطبخ لتأكيد الدفع` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'} - Go to Kitchen to confirm`, type: 'warning' });
+            } else {
+              setNotification({ title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`, type: 'success' });
+            }
             setOrders(fresh);
             setTables(prev => prev.map(tb => tb.id === newOrder.tableId ? { ...tb, status: 'occupied' } : tb));
             api.updateTable(newOrder.tableId, { status: 'occupied' }).catch(() => {});

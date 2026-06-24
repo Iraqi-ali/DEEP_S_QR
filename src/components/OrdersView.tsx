@@ -104,6 +104,34 @@ export default function OrdersView({
 
       {/* Main Grid: Live Kitchen Feed */}
       <div className="space-y-6">
+        {/* Pending Payment Section (Before Eating Mode) */}
+        {isPayBefore && pendingPaymentOrders.length > 0 && (
+          <div className="rounded-2xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">💳</span>
+              <h3 className="text-[14px] font-extrabold text-amber-800 dark:text-amber-400">
+                {isRTL ? `طلبات بانتظار الدفع (${pendingPaymentOrders.length})` : `Pending Payment (${pendingPaymentOrders.length})`}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {pendingPaymentOrders.map(order => (
+                <div key={order.id} className="flex items-center justify-between bg-white/60 dark:bg-zinc-900/60 rounded-xl p-3">
+                  <div>
+                    <p className="text-xs font-bold">#{order.id.split('-')[1]} - {getTableNumber(order.tableId)}</p>
+                    <p className="text-[10px] opacity-60">{order.total.toLocaleString()} {currentRestaurant.currency}</p>
+                  </div>
+                  <button
+                    onClick={() => onUpdateOrderStatus(order.id, 'preparing')}
+                    className="rounded-full bg-green-500 px-4 py-1.5 text-[10px] font-bold text-white hover:bg-green-600"
+                  >
+                    {isRTL ? '✅ تأكيد الدفع' : '✅ Confirm Payment'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
           <ChefHat className="text-blue-500 dark:text-blue-400" size={18} />
           <h3 className="text-[14px] font-display font-extrabold text-slate-800 dark:text-zinc-200">
