@@ -179,8 +179,11 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
                     })}
                   </div>
 
-                  <button onClick={() => { setOrderPlaced(false); setShowMenu(true); }} className="w-full rounded-full py-2.5 text-xs font-bold text-white" style={{ backgroundColor: theme.primary }}>
+                  <button onClick={() => { setOrderPlaced(false); setShowMenu(true); }} className="w-full rounded-full py-2.5 text-xs font-bold text-white mb-2" style={{ backgroundColor: theme.primary }}>
                     {isRTL ? 'طلب المزيد 🍽️' : 'Order More 🍽️'}
+                  </button>
+                  <button onClick={callWaiter} className="w-full rounded-full py-2.5 text-xs font-bold border-2 border-amber-400 text-amber-600 dark:text-amber-400">
+                    {isRTL ? '🧾 طلب الفاتورة / استدعاء النادل' : '🧾 Request Bill / Call Waiter'}
                   </button>
                 </motion.div>
               ) : showCart ? (
@@ -233,17 +236,29 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
                   </div>
                   {/* Menu items */}
                   <div className="space-y-3">
-                    {menuItems.filter(i => category === 'All' || i.category === category).map(item => (
-                      <div key={item.id} className="p-3 bg-white/50 dark:bg-zinc-900/30 rounded-2xl flex items-center gap-3">
-                        <span className="text-3xl shrink-0">{item.image}</span>
-                        <div className="flex-1 min-w-0">
-                          <h6 className="text-[13px] font-extrabold truncate">{isRTL ? item.nameAr : item.nameEn}</h6>
-                          <p className="text-[10px] opacity-50 truncate">{isRTL ? item.descriptionAr : item.descriptionEn}</p>
-                          <p className="text-[11px] font-bold mt-1">{item.price.toLocaleString()} {restaurant.currency}</p>
+                    {menuItems.filter(i => category === 'All' || i.category === category).map(item => {
+                      const inCart = cart[item.id];
+                      const qty = inCart?.qty || 0;
+                      return (
+                        <div key={item.id} className="p-3 bg-white/50 dark:bg-zinc-900/30 rounded-2xl flex items-center gap-3">
+                          <span className="text-3xl shrink-0">{item.image}</span>
+                          <div className="flex-1 min-w-0">
+                            <h6 className="text-[13px] font-extrabold truncate">{isRTL ? item.nameAr : item.nameEn}</h6>
+                            <p className="text-[10px] opacity-50 truncate">{isRTL ? item.descriptionAr : item.descriptionEn}</p>
+                            <p className="text-[11px] font-bold mt-1">{item.price.toLocaleString()} {restaurant.currency}</p>
+                          </div>
+                          <div className="shrink-0 flex items-center gap-1">
+                            {qty > 0 && (
+                              <>
+                                <button onClick={() => removeFromCart(item.id)} className="h-7 w-7 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-sm font-bold hover:bg-black/20">-</button>
+                                <span className="text-xs font-bold w-5 text-center">{qty}</span>
+                              </>
+                            )}
+                            <button onClick={() => addToCart(item)} className="h-7 w-7 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ backgroundColor: theme.primary }}>+</button>
+                          </div>
                         </div>
-                        <button onClick={() => addToCart(item)} className="shrink-0 h-8 w-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ backgroundColor: theme.primary }}>+</button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}

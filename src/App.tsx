@@ -44,10 +44,7 @@ export default function App() {
   if (!guestRef.current) {
     const p = new URLSearchParams(window.location.search);
     const tid = p.get('tableId');
-    if (tid) {
-      guestRef.current = { tableId: tid };
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    if (tid) guestRef.current = { tableId: tid };
   }
   const isGuestMode = !!guestRef.current;
 
