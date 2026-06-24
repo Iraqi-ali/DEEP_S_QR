@@ -67,6 +67,7 @@ export default function DashboardView({
   const getTableColor = (status: Table['status']) => {
     switch (status) {
       case 'empty': return 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30';
+      case 'occupied': return 'bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-950/20 dark:text-cyan-400 dark:border-cyan-900/30';
       case 'ordering': return 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30';
       case 'waiting': return 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30';
       case 'eating': return 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/30';
@@ -77,6 +78,7 @@ export default function DashboardView({
   const getTableLabel = (status: Table['status']) => {
     switch (status) {
       case 'empty': return t.statusEmpty;
+      case 'occupied': return isRTL ? 'مشغولة' : 'Occupied';
       case 'ordering': return t.statusOrdering;
       case 'waiting': return t.statusWaiting;
       case 'eating': return t.statusEating;
@@ -259,7 +261,7 @@ export default function DashboardView({
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     if (onUpdateTableStatus) {
-                      const statuses: Table['status'][] = ['empty', 'ordering', 'waiting', 'eating', 'dirty'];
+                      const statuses: Table['status'][] = ['empty', 'occupied', 'ordering', 'waiting', 'eating', 'dirty'];
                       const currentIndex = statuses.indexOf(table.status);
                       const nextStatus = statuses[(currentIndex + 1) % statuses.length];
                       onUpdateTableStatus(table.id, nextStatus);

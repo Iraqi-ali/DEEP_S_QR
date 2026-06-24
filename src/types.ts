@@ -31,7 +31,7 @@ export interface Table {
   id: string;
   number: string;
   capacity: number;
-  status: 'empty' | 'ordering' | 'waiting' | 'eating' | 'dirty';
+  status: 'empty' | 'occupied' | 'ordering' | 'waiting' | 'eating' | 'dirty';
   qrCodeSeed: string;
 }
 
