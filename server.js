@@ -1,9 +1,8 @@
 /**
- * QR Menu & Table System - Express Server with SQLite
- * Ready for Render deployment
+ * QR Menu & Table System - Express Server with JSON File Storage
+ * Zero native dependencies - deploys instantly on Render
  */
 import express from 'express';
-import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -17,333 +16,163 @@ const PORT = process.env.PORT || 3000;
 // ── Middleware ──────────────────────────────────────────────
 app.use(express.json());
 
-// ── Database Setup ─────────────────────────────────────────
-// Use RENDER_DISK_PATH if available (Render persistent disk), otherwise local dir
+// ── JSON File Database ──────────────────────────────────────
 const dataDir = process.env.RENDER_DISK_PATH || __dirname;
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-const dbPath = path.join(dataDir, 'restaurant.db');
+const DB_FILE = path.join(dataDir, 'data.json');
 
-console.log(`📁 Database path: ${dbPath}`);
+console.log(`📁 Database: ${DB_FILE}`);
 
-const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-// Create tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS restaurants (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    logo TEXT NOT NULL DEFAULT '🍽️',
-    phone TEXT NOT NULL DEFAULT '',
-    address TEXT NOT NULL DEFAULT '',
-    currency TEXT NOT NULL DEFAULT 'SAR',
-    tax_rate REAL NOT NULL DEFAULT 0.15,
-    service_charge REAL NOT NULL DEFAULT 5.0
-  );
-
-  CREATE TABLE IF NOT EXISTS tables (
-    id TEXT PRIMARY KEY,
-    number TEXT NOT NULL,
-    capacity INTEGER NOT NULL DEFAULT 4,
-    status TEXT NOT NULL DEFAULT 'empty',
-    qr_code_seed TEXT NOT NULL DEFAULT '',
-    restaurant_id TEXT NOT NULL DEFAULT 'rest-1',
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS menu_items (
-    id TEXT PRIMARY KEY,
-    name_ar TEXT NOT NULL,
-    name_en TEXT NOT NULL,
-    price REAL NOT NULL,
-    category TEXT NOT NULL DEFAULT 'عام',
-    image TEXT NOT NULL DEFAULT '🍽️',
-    description_ar TEXT DEFAULT '',
-    description_en TEXT DEFAULT '',
-    available INTEGER NOT NULL DEFAULT 1,
-    is_popular INTEGER NOT NULL DEFAULT 0,
-    restaurant_id TEXT NOT NULL DEFAULT 'rest-1',
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS orders (
-    id TEXT PRIMARY KEY,
-    table_id TEXT NOT NULL,
-    restaurant_id TEXT NOT NULL,
-    subtotal REAL NOT NULL,
-    tax REAL NOT NULL,
-    service REAL NOT NULL,
-    total REAL NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    created_at TEXT NOT NULL,
-    payment_method TEXT,
-    FOREIGN KEY (table_id) REFERENCES tables(id) ON DELETE CASCADE,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS order_items (
-    id TEXT PRIMARY KEY,
-    order_id TEXT NOT NULL,
-    menu_item_id TEXT NOT NULL,
-    quantity INTEGER NOT NULL,
-    price_at_order REAL NOT NULL,
-    notes TEXT DEFAULT '',
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
-  );
-`);
-
-// ── Seed initial data if empty ──────────────────────────────
-const seedDatabase = () => {
-  const count = db.prepare('SELECT COUNT(*) as c FROM restaurants').get();
-  if (count.c > 0) return;
-
-  const insertRestaurant = db.prepare(`INSERT INTO restaurants VALUES (?,?,?,?,?,?,?,?)`);
-  const insertTable = db.prepare(`INSERT INTO tables VALUES (?,?,?,?,?,?)`);
-  const insertMenuItem = db.prepare(`INSERT INTO menu_items VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
-  const insertOrder = db.prepare(`INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?,?)`);
-  const insertOrderItem = db.prepare(`INSERT INTO order_items VALUES (?,?,?,?,?,?)`);
-  const insertSetting = db.prepare(`INSERT OR REPLACE INTO settings VALUES (?,?)`);
-
-  const seed = db.transaction(() => {
-    // Restaurants
-    insertRestaurant.run('rest-1', 'شاورما وجريل الشام', '🥙', '+966 50 123 4567', 'الرياض - حي الياسمين', 'SAR', 0.15, 5);
-    insertRestaurant.run('rest-2', 'برجر هافن | Burger Haven', '🍔', '+966 55 987 6543', 'جدة - طريق الكورنيش', 'SAR', 0.15, 10);
-    insertRestaurant.run('rest-3', 'مطبخ البيت اليمني والريفي', '🥘', '+966 56 444 3322', 'الدمام - شارع عمر بن الخطاب', 'SAR', 0.15, 0);
-    insertRestaurant.run('rest-4', 'أرومـا كافيه | Aroma Lounge', '☕', '+966 53 111 2222', 'الرياض - بوليفارد سيتي', 'SAR', 0.15, 15);
-
-    // Tables
-    const tables = [
-      ['tb-1', 'طاولة 1', 2, 'empty', 'table-1-seed-992', 'rest-1'],
-      ['tb-2', 'طاولة 2', 4, 'ordering', 'table-2-seed-811', 'rest-1'],
-      ['tb-3', 'طاولة 3 (VIP)', 6, 'waiting', 'table-3-seed-104', 'rest-1'],
-      ['tb-4', 'طاولة 4 (عائلية)', 8, 'eating', 'table-4-seed-443', 'rest-1'],
-      ['tb-5', 'طاولة 5 (خارجية)', 2, 'dirty', 'table-5-seed-729', 'rest-1'],
-      ['tb-6', 'طاولة 6', 4, 'empty', 'table-6-seed-331', 'rest-1'],
-    ];
-    tables.forEach(t => insertTable.run(...t));
-
-    // Menu Items
-    const menuItems = [
-      ['item-101', 'شاورما دجاج سوبر جامبو', 'Super Jumbo Chicken Shawarma', 18, 'Saj & Wraps', '🥙', 'شاورما دجاج متبلة بالخلطة الشامية', 'Shami marinated chicken shawarma', 1, 1, 'rest-1'],
-      ['item-102', 'صحن شاورما لحم عربي', 'Arabic Beef Shawarma Platter', 32, 'Platters', '🍱', 'قطع شاورما لحم بلدي', 'Local beef shawarma pieces', 1, 1, 'rest-1'],
-      ['item-103', 'كباب لحم دبل مشوي', 'Double Grilled Meat Kabab', 45, 'Grills', '🍢', 'سيخان من اللحم المفروم المتبل', 'Two skewers of minced beef', 1, 0, 'rest-1'],
-      ['item-104', 'سلطة فتوش بدبس الرمان', 'Fattoush Salad', 15, 'Appetizers', '🥗', 'مزيج من الخضار الطازجة', 'Fresh mixed greens', 1, 0, 'rest-1'],
-      ['item-105', 'كوكا كولا بارد', 'Coca Cola Cold', 5, 'Drinks', '🥤', 'مشروب غازي مثلج', 'Refreshing cold beverage', 1, 0, 'rest-1'],
-      ['item-201', 'برجر ترافل كلاسيك دبل', 'Double Classic Truffle Burger', 38, 'Burgers', '🍔', 'شريحتان من لحم الأنجوس', 'Two premium Angus beef patties', 1, 1, 'rest-2'],
-      ['item-202', 'برجر الدجاج المقرمش الحار', 'Spicy Crispy Chicken Burger', 29, 'Burgers', '🍗', 'صدر دجاج مقرمش', 'Crispy fried chicken breast', 1, 1, 'rest-2'],
-      ['item-203', 'بطاطس هافن بالجبنة واللحم', 'Haven Loaded Cheese Fries', 22, 'Appetizers', '🍟', 'بطاطس مقرمشة بالجبنة', 'Crispy fries with cheese', 1, 0, 'rest-2'],
-      ['item-204', 'مولتن تشوكلت كيك', 'Molten Chocolate Cake', 24, 'Desserts', '🍰', 'كيك الشوكولاتة الغني', 'Rich chocolate lava cake', 1, 1, 'rest-2'],
-    ];
-    menuItems.forEach(m => insertMenuItem.run(...m));
-
-    // Orders
-    const now = Date.now();
-    insertOrder.run('order-1', 'tb-2', 'rest-1', 46, 6.9, 5, 57.9, 'preparing', new Date(now - 30*60000).toISOString(), null);
-    insertOrder.run('order-2', 'tb-3', 'rest-1', 52, 7.8, 5, 64.8, 'pending', new Date(now - 5*60000).toISOString(), null);
-    insertOrder.run('order-3', 'tb-4', 'rest-2', 122, 18.3, 10, 150.3, 'served', new Date(now - 75*60000).toISOString(), 'cash');
-
-    insertOrderItem.run('oi-1', 'order-1', 'item-101', 2, 18, 'بدون بصل');
-    insertOrderItem.run('oi-2', 'order-1', 'item-105', 2, 5, '');
-    insertOrderItem.run('oi-3', 'order-2', 'item-102', 1, 32, 'مخلل إضافي');
-    insertOrderItem.run('oi-4', 'order-2', 'item-104', 1, 15, '');
-    insertOrderItem.run('oi-5', 'order-2', 'item-105', 1, 5, '');
-    insertOrderItem.run('oi-6', 'order-3', 'item-201', 2, 38, 'مستوية جداً');
-    insertOrderItem.run('oi-7', 'order-3', 'item-203', 1, 22, '');
-    insertOrderItem.run('oi-8', 'order-3', 'item-204', 1, 24, '');
-
-    // Settings
-    insertSetting.run('lang', 'ar');
-    insertSetting.run('theme', 'light');
-    insertSetting.run('active_restaurant_id', 'rest-1');
-    insertSetting.run('active_theme_id', 'theme-sunset');
-  });
-
-  seed();
-  console.log('✅ Database seeded with initial data');
+let store = {
+  settings: { lang: 'ar', theme: 'light', active_restaurant_id: 'rest-1', active_theme_id: 'theme-sunset' },
+  restaurants: [], tables: [], menu_items: [], orders: [], order_items: []
 };
 
-seedDatabase();
+function loadStore() {
+  try { if (fs.existsSync(DB_FILE)) store = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')); }
+  catch { console.log('🆕 Starting fresh'); }
+}
+function saveStore() { fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2)); }
+function ok(res, data) { res.json(data); }
+
+loadStore();
+
+// ── Seed if empty ───────────────────────────────────────────
+if (store.restaurants.length === 0) {
+  store.restaurants = [
+    { id: 'rest-1', name: 'شاورما وجريل الشام', logo: '🥙', phone: '+966 50 123 4567', address: 'الرياض - حي الياسمين', currency: 'SAR', taxRate: 0.15, serviceCharge: 5 },
+    { id: 'rest-2', name: 'برجر هافن | Burger Haven', logo: '🍔', phone: '+966 55 987 6543', address: 'جدة - طريق الكورنيش', currency: 'SAR', taxRate: 0.15, serviceCharge: 10 },
+    { id: 'rest-3', name: 'مطبخ البيت اليمني والريفي', logo: '🥘', phone: '+966 56 444 3322', address: 'الدمام - شارع عمر بن الخطاب', currency: 'SAR', taxRate: 0.15, serviceCharge: 0 },
+    { id: 'rest-4', name: 'أرومـا كافيه | Aroma Lounge', logo: '☕', phone: '+966 53 111 2222', address: 'الرياض - بوليفارد سيتي', currency: 'SAR', taxRate: 0.15, serviceCharge: 15 }
+  ];
+  store.tables = [
+    { id: 'tb-1', number: 'طاولة 1', capacity: 2, status: 'empty', qrCodeSeed: 'table-1-seed-992', restaurantId: 'rest-1' },
+    { id: 'tb-2', number: 'طاولة 2', capacity: 4, status: 'ordering', qrCodeSeed: 'table-2-seed-811', restaurantId: 'rest-1' },
+    { id: 'tb-3', number: 'طاولة 3 (VIP)', capacity: 6, status: 'waiting', qrCodeSeed: 'table-3-seed-104', restaurantId: 'rest-1' },
+    { id: 'tb-4', number: 'طاولة 4 (عائلية)', capacity: 8, status: 'eating', qrCodeSeed: 'table-4-seed-443', restaurantId: 'rest-1' },
+    { id: 'tb-5', number: 'طاولة 5 (خارجية)', capacity: 2, status: 'dirty', qrCodeSeed: 'table-5-seed-729', restaurantId: 'rest-1' },
+    { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331', restaurantId: 'rest-1' }
+  ];
+  store.menu_items = [
+    { id: 'item-101', nameAr: 'شاورما دجاج سوبر جامبو', nameEn: 'Super Jumbo Chicken Shawarma', price: 18, category: 'Saj & Wraps', image: '🥙', descriptionAr: 'شاورما دجاج متبلة بالخلطة الشامية', descriptionEn: 'Shami marinated chicken shawarma', available: true, isPopular: true, restaurantId: 'rest-1' },
+    { id: 'item-102', nameAr: 'صحن شاورما لحم عربي', nameEn: 'Arabic Beef Shawarma Platter', price: 32, category: 'Platters', image: '🍱', descriptionAr: 'قطع شاورما لحم بلدي', descriptionEn: 'Local beef shawarma pieces', available: true, isPopular: true, restaurantId: 'rest-1' },
+    { id: 'item-103', nameAr: 'كباب لحم دبل مشوي', nameEn: 'Double Grilled Meat Kabab', price: 45, category: 'Grills', image: '🍢', descriptionAr: 'سيخان من اللحم المفروم المتبل', descriptionEn: 'Two skewers of minced beef', available: true, isPopular: false, restaurantId: 'rest-1' },
+    { id: 'item-104', nameAr: 'سلطة فتوش بدبس الرمان', nameEn: 'Fattoush Salad', price: 15, category: 'Appetizers', image: '🥗', descriptionAr: 'مزيج من الخضار الطازجة', descriptionEn: 'Fresh mixed greens', available: true, isPopular: false, restaurantId: 'rest-1' },
+    { id: 'item-105', nameAr: 'كوكا كولا بارد', nameEn: 'Coca Cola Cold', price: 5, category: 'Drinks', image: '🥤', descriptionAr: 'مشروب غازي مثلج', descriptionEn: 'Refreshing cold beverage', available: true, isPopular: false, restaurantId: 'rest-1' },
+    { id: 'item-201', nameAr: 'برجر ترافل كلاسيك دبل', nameEn: 'Double Classic Truffle Burger', price: 38, category: 'Burgers', image: '🍔', descriptionAr: 'شريحتان من لحم الأنجوس', descriptionEn: 'Two premium Angus beef patties', available: true, isPopular: true, restaurantId: 'rest-2' },
+    { id: 'item-202', nameAr: 'برجر الدجاج المقرمش الحار', nameEn: 'Spicy Crispy Chicken Burger', price: 29, category: 'Burgers', image: '🍗', descriptionAr: 'صدر دجاج مقرمش', descriptionEn: 'Crispy fried chicken breast', available: true, isPopular: true, restaurantId: 'rest-2' },
+    { id: 'item-203', nameAr: 'بطاطس هافن بالجبنة واللحم', nameEn: 'Haven Loaded Cheese Fries', price: 22, category: 'Appetizers', image: '🍟', descriptionAr: 'بطاطس مقرمشة بالجبنة', descriptionEn: 'Crispy fries with cheese', available: true, isPopular: false, restaurantId: 'rest-2' },
+    { id: 'item-204', nameAr: 'مولتن تشوكلت كيك', nameEn: 'Molten Chocolate Cake', price: 24, category: 'Desserts', image: '🍰', descriptionAr: 'كيك الشوكولاتة الغني', descriptionEn: 'Rich chocolate lava cake', available: true, isPopular: true, restaurantId: 'rest-2' }
+  ];
+  const now = Date.now();
+  store.orders = [
+    { id: 'order-1', tableId: 'tb-2', restaurantId: 'rest-1', subtotal: 46, tax: 6.9, service: 5, total: 57.9, status: 'preparing', createdAt: new Date(now - 30*60000).toISOString(), paymentMethod: null },
+    { id: 'order-2', tableId: 'tb-3', restaurantId: 'rest-1', subtotal: 52, tax: 7.8, service: 5, total: 64.8, status: 'pending', createdAt: new Date(now - 5*60000).toISOString(), paymentMethod: null },
+    { id: 'order-3', tableId: 'tb-4', restaurantId: 'rest-2', subtotal: 122, tax: 18.3, service: 10, total: 150.3, status: 'served', createdAt: new Date(now - 75*60000).toISOString(), paymentMethod: 'cash' }
+  ];
+  store.order_items = [
+    { id: 'oi-1', orderId: 'order-1', menuItemId: 'item-101', quantity: 2, priceAtOrder: 18, notes: 'بدون بصل' },
+    { id: 'oi-2', orderId: 'order-1', menuItemId: 'item-105', quantity: 2, priceAtOrder: 5, notes: '' },
+    { id: 'oi-3', orderId: 'order-2', menuItemId: 'item-102', quantity: 1, priceAtOrder: 32, notes: 'مخلل إضافي' },
+    { id: 'oi-4', orderId: 'order-2', menuItemId: 'item-104', quantity: 1, priceAtOrder: 15, notes: '' },
+    { id: 'oi-5', orderId: 'order-2', menuItemId: 'item-105', quantity: 1, priceAtOrder: 5, notes: '' },
+    { id: 'oi-6', orderId: 'order-3', menuItemId: 'item-201', quantity: 2, priceAtOrder: 38, notes: 'مستوية جداً' },
+    { id: 'oi-7', orderId: 'order-3', menuItemId: 'item-203', quantity: 1, priceAtOrder: 22, notes: '' },
+    { id: 'oi-8', orderId: 'order-3', menuItemId: 'item-204', quantity: 1, priceAtOrder: 24, notes: '' }
+  ];
+  saveStore();
+  console.log('✅ Seeded initial data');
+}
 
 // ── API Routes ──────────────────────────────────────────────
 
-// ── Settings ──
-app.get('/api/settings', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM settings').all();
-  const settings = {};
-  rows.forEach(r => { settings[r.key] = r.value; });
-  res.json(settings);
-});
+app.get('/api/settings', (_req, res) => ok(res, store.settings));
 
 app.put('/api/settings', (req, res) => {
-  const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
-  const tx = db.transaction(() => {
-    for (const [key, value] of Object.entries(req.body)) {
-      stmt.run(key, String(value));
-    }
-  });
-  tx();
-  res.json({ success: true });
+  store.settings = { ...store.settings, ...req.body };
+  saveStore(); ok(res, { success: true });
 });
 
-// ── Restaurants ──
-app.get('/api/restaurants', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM restaurants').all();
-  res.json(rows.map(r => ({ ...r, taxRate: r.tax_rate, serviceCharge: r.service_charge })));
-});
+app.get('/api/restaurants', (_req, res) => ok(res, store.restaurants));
 
 app.post('/api/restaurants', (req, res) => {
-  const { id, name, logo, phone, address, currency, taxRate, serviceCharge } = req.body;
-  db.prepare(`INSERT INTO restaurants VALUES (?,?,?,?,?,?,?,?)`)
-    .run(id, name, logo || '🍽️', phone || '', address || '', currency || 'SAR', taxRate || 0.15, serviceCharge || 5);
-  res.json({ success: true, id });
+  store.restaurants.push(req.body);
+  saveStore(); ok(res, { success: true, id: req.body.id });
 });
 
 app.put('/api/restaurants/:id', (req, res) => {
-  const { name, logo, phone, address, currency, taxRate, serviceCharge } = req.body;
-  db.prepare(`UPDATE restaurants SET name=?, logo=?, phone=?, address=?, currency=?, tax_rate=?, service_charge=? WHERE id=?`)
-    .run(name, logo, phone, address, currency, taxRate, serviceCharge, req.params.id);
-  res.json({ success: true });
+  const i = store.restaurants.findIndex(r => r.id === req.params.id);
+  if (i === -1) return res.status(404).json({ error: 'Not found' });
+  store.restaurants[i] = { ...store.restaurants[i], ...req.body };
+  saveStore(); ok(res, { success: true });
 });
 
 app.delete('/api/restaurants/:id', (req, res) => {
-  db.prepare('DELETE FROM restaurants WHERE id=?').run(req.params.id);
-  res.json({ success: true });
+  store.restaurants = store.restaurants.filter(r => r.id !== req.params.id);
+  saveStore(); ok(res, { success: true });
 });
 
-// ── Tables ──
-app.get('/api/tables', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM tables').all();
-  res.json(rows.map(r => ({ ...r, qrCodeSeed: r.qr_code_seed, restaurantId: r.restaurant_id, number: r.number, capacity: r.capacity, status: r.status })));
-});
+app.get('/api/tables', (_req, res) => ok(res, store.tables));
 
 app.post('/api/tables', (req, res) => {
-  const { id, number, capacity, status, qrCodeSeed, restaurantId } = req.body;
-  db.prepare(`INSERT INTO tables VALUES (?,?,?,?,?,?)`)
-    .run(id, number, capacity || 4, status || 'empty', qrCodeSeed || '', restaurantId || 'rest-1');
-  res.json({ success: true, id });
+  store.tables.push(req.body);
+  saveStore(); ok(res, { success: true, id: req.body.id });
 });
 
 app.put('/api/tables/:id', (req, res) => {
-  const { number, capacity, status, qrCodeSeed, restaurantId } = req.body;
-  const current = db.prepare('SELECT * FROM tables WHERE id=?').get(req.params.id);
-  if (!current) return res.status(404).json({ error: 'Table not found' });
-  db.prepare(`UPDATE tables SET number=?, capacity=?, status=?, qr_code_seed=?, restaurant_id=? WHERE id=?`)
-    .run(
-      number ?? current.number,
-      capacity ?? current.capacity,
-      status ?? current.status,
-      qrCodeSeed ?? current.qr_code_seed,
-      restaurantId ?? current.restaurant_id,
-      req.params.id
-    );
-  res.json({ success: true });
+  const i = store.tables.findIndex(t => t.id === req.params.id);
+  if (i === -1) return res.status(404).json({ error: 'Not found' });
+  store.tables[i] = { ...store.tables[i], ...req.body };
+  saveStore(); ok(res, { success: true });
 });
 
 app.delete('/api/tables/:id', (req, res) => {
-  db.prepare('DELETE FROM tables WHERE id=?').run(req.params.id);
-  res.json({ success: true });
+  store.tables = store.tables.filter(t => t.id !== req.params.id);
+  saveStore(); ok(res, { success: true });
 });
 
-// ── Menu Items ──
-app.get('/api/menu-items', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM menu_items').all();
-  res.json(rows.map(r => ({
-    id: r.id, nameAr: r.name_ar, nameEn: r.name_en, price: r.price,
-    category: r.category, image: r.image, descriptionAr: r.description_ar,
-    descriptionEn: r.description_en, available: !!r.available, isPopular: !!r.is_popular,
-    restaurantId: r.restaurant_id
-  })));
-});
+app.get('/api/menu-items', (_req, res) => ok(res, store.menu_items));
 
 app.post('/api/menu-items', (req, res) => {
-  const { id, nameAr, nameEn, price, category, image, descriptionAr, descriptionEn, available, isPopular, restaurantId } = req.body;
-  db.prepare(`INSERT INTO menu_items VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
-    .run(id, nameAr, nameEn, price, category || 'عام', image || '🍽️', descriptionAr || '', descriptionEn || '', available ? 1 : 0, isPopular ? 1 : 0, restaurantId || 'rest-1');
-  res.json({ success: true, id });
+  store.menu_items.push(req.body);
+  saveStore(); ok(res, { success: true, id: req.body.id });
 });
 
 app.put('/api/menu-items/:id', (req, res) => {
-  const current = db.prepare('SELECT * FROM menu_items WHERE id=?').get(req.params.id);
-  if (!current) return res.status(404).json({ error: 'Not found' });
-
-  const { nameAr, nameEn, price, category, image, descriptionAr, descriptionEn, available, isPopular, restaurantId } = req.body;
-  db.prepare(`UPDATE menu_items SET name_ar=?, name_en=?, price=?, category=?, image=?, description_ar=?, description_en=?, available=?, is_popular=?, restaurant_id=? WHERE id=?`)
-    .run(
-      nameAr ?? current.name_ar, nameEn ?? current.name_en, price ?? current.price,
-      category ?? current.category, image ?? current.image,
-      descriptionAr ?? current.description_ar, descriptionEn ?? current.description_en,
-      available !== undefined ? (available ? 1 : 0) : current.available,
-      isPopular !== undefined ? (isPopular ? 1 : 0) : current.is_popular,
-      restaurantId ?? current.restaurant_id, req.params.id
-    );
-  res.json({ success: true });
+  const i = store.menu_items.findIndex(m => m.id === req.params.id);
+  if (i === -1) return res.status(404).json({ error: 'Not found' });
+  store.menu_items[i] = { ...store.menu_items[i], ...req.body };
+  saveStore(); ok(res, { success: true });
 });
 
 app.delete('/api/menu-items/:id', (req, res) => {
-  db.prepare('DELETE FROM menu_items WHERE id=?').run(req.params.id);
-  res.json({ success: true });
+  store.menu_items = store.menu_items.filter(m => m.id !== req.params.id);
+  saveStore(); ok(res, { success: true });
 });
 
-// ── Orders ──
 app.get('/api/orders', (_req, res) => {
-  const orders = db.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
-  const result = orders.map(o => {
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id=?').all(o.id);
-    return {
-      id: o.id, tableId: o.table_id, restaurantId: o.restaurant_id,
-      subtotal: o.subtotal, tax: o.tax, service: o.service, total: o.total,
-      status: o.status, createdAt: o.created_at, paymentMethod: o.payment_method,
-      items: items.map(i => ({
-        id: i.id, menuItemId: i.menu_item_id, quantity: i.quantity,
-        priceAtOrder: i.price_at_order, notes: i.notes
-      }))
-    };
-  });
-  res.json(result);
+  const orders = [...store.orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  ok(res, orders.map(o => ({ ...o, items: store.order_items.filter(i => i.orderId === o.id) })));
 });
 
 app.post('/api/orders', (req, res) => {
-  const { id, tableId, restaurantId, items, subtotal, tax, service, total, status, createdAt, paymentMethod } = req.body;
-
-  const tx = db.transaction(() => {
-    db.prepare(`INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?,?)`)
-      .run(id, tableId, restaurantId, subtotal, tax, service, total, status || 'pending', createdAt || new Date().toISOString(), paymentMethod || null);
-
-    const stmt = db.prepare(`INSERT INTO order_items VALUES (?,?,?,?,?,?)`);
-    items.forEach((item, idx) => {
-      stmt.run(item.id || `oi-${idx}-${Date.now()}`, id, item.menuItemId, item.quantity, item.priceAtOrder, item.notes || '');
-    });
-  });
-  tx();
-  res.json({ success: true, id });
+  const { items, ...order } = req.body;
+  store.orders.push(order);
+  if (items) store.order_items.push(...items);
+  saveStore(); ok(res, { success: true, id: order.id });
 });
 
 app.put('/api/orders/:id', (req, res) => {
-  const current = db.prepare('SELECT * FROM orders WHERE id=?').get(req.params.id);
-  if (!current) return res.status(404).json({ error: 'Not found' });
-
-  const { status, paymentMethod } = req.body;
-  db.prepare(`UPDATE orders SET status=?, payment_method=? WHERE id=?`)
-    .run(status ?? current.status, paymentMethod !== undefined ? paymentMethod : current.payment_method, req.params.id);
-  res.json({ success: true });
+  const i = store.orders.findIndex(o => o.id === req.params.id);
+  if (i === -1) return res.status(404).json({ error: 'Not found' });
+  store.orders[i] = { ...store.orders[i], ...req.body };
+  saveStore(); ok(res, { success: true });
 });
 
-// ── Reset ──
 app.post('/api/reset', (_req, res) => {
-  db.exec(`
-    DELETE FROM order_items; DELETE FROM orders;
-    DELETE FROM menu_items; DELETE FROM tables;
-    DELETE FROM restaurants; DELETE FROM settings;
-  `);
-  seedDatabase();
-  res.json({ success: true });
+  store.restaurants = []; store.tables = []; store.menu_items = [];
+  store.orders = []; store.order_items = [];
+  saveStore(); loadStore(); ok(res, { success: true });
 });
 
 // ── Serve React in production ───────────────────────────────
