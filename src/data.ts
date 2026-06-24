@@ -15,7 +15,8 @@ export const INITIAL_RESTAURANTS: Restaurant[] = [
     city: 'بغداد',
     currency: 'د.ع',
     taxRate: 0.10,
-    serviceCharge: 3000
+    serviceCharge: 3000,
+    paymentMode: 'after'
   },
   {
     id: 'rest-2',
@@ -26,7 +27,8 @@ export const INITIAL_RESTAURANTS: Restaurant[] = [
     city: 'البصرة',
     currency: 'د.ع',
     taxRate: 0.10,
-    serviceCharge: 2000
+    serviceCharge: 2000,
+    paymentMode: 'after'
   },
   {
     id: 'rest-3',
@@ -37,7 +39,8 @@ export const INITIAL_RESTAURANTS: Restaurant[] = [
     city: 'أربيل',
     currency: 'د.ع',
     taxRate: 0.10,
-    serviceCharge: 5000
+    serviceCharge: 5000,
+    paymentMode: 'before'
   }
 ];
 

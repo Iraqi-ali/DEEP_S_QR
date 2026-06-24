@@ -47,19 +47,15 @@ interface TablesViewProps {
   onAddTable: (number: string, capacity: number) => void;
   onDeleteTable: (id: string) => void;
   onSimulateScan: (tableId: string) => void;
+  onUpdateTableStatus?: (tableId: string, status: Table['status']) => void;
   lang: Lang;
   restaurantName?: string;
   restaurantLogo?: string;
 }
 
 export default function TablesView({
-  tables,
-  onAddTable,
-  onDeleteTable,
-  onSimulateScan,
-  lang,
-  restaurantName = 'QR Restaurant',
-  restaurantLogo = '🍽️'
+  tables, onAddTable, onDeleteTable, onSimulateScan, onUpdateTableStatus,
+  lang, restaurantName = 'QR Restaurant', restaurantLogo = '🍽️'
 }: TablesViewProps) {
   const [newNum, setNewNum] = useState('');
   const [newCap, setNewCap] = useState(4);
@@ -333,9 +329,18 @@ export default function TablesView({
                     </div>
                   </div>
 
-                  <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusClass}`}>
-                    {getStatusLabel(table.status)}
-                  </span>
+                  <select
+                    value={table.status}
+                    onChange={(e) => onUpdateTableStatus?.(table.id, e.target.value as Table['status'])}
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold outline-none cursor-pointer ${statusClass}`}
+                  >
+                    <option value="empty">{isRTL ? 'فارغة' : 'Empty'}</option>
+                    <option value="occupied">{isRTL ? 'مشغولة' : 'Occupied'}</option>
+                    <option value="ordering">{isRTL ? 'تتصفح المنيو' : 'Browsing'}</option>
+                    <option value="waiting">{isRTL ? 'بانتظار الطلب' : 'Waiting'}</option>
+                    <option value="eating">{isRTL ? 'تتناول الطعام' : 'Eating'}</option>
+                    <option value="dirty">{isRTL ? 'بحاجة تنظيف' : 'Needs Cleaning'}</option>
+                  </select>
                 </div>
 
                 {/* Real, Scannable QR Code Area */}

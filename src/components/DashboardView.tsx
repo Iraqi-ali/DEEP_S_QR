@@ -247,7 +247,7 @@ export default function DashboardView({
               </h3>
             </div>
             <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-sans">
-              {isRTL ? 'اضغط لتغيير حالة الطاولة' : 'Click to change table status'}
+              {isRTL ? 'اختر حالة الطاولة من القائمة' : 'Select table status from dropdown'}
             </span>
           </div>
 
@@ -258,20 +258,23 @@ export default function DashboardView({
                 <motion.div
                   key={table.id}
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    if (onUpdateTableStatus) {
-                      const statuses: Table['status'][] = ['empty', 'occupied', 'ordering', 'waiting', 'eating', 'dirty'];
-                      const currentIndex = statuses.indexOf(table.status);
-                      const nextStatus = statuses[(currentIndex + 1) % statuses.length];
-                      onUpdateTableStatus(table.id, nextStatus);
-                    }
-                  }}
-                  className={`relative group p-4 rounded-3xl border text-center cursor-pointer transition-all ${statusClass}`}
+                  className={`relative group p-4 rounded-3xl border text-center transition-all ${statusClass}`}
                 >
                   <span className="text-2xl block mt-2">🪑</span>
                   <h4 className="text-xs font-display font-extrabold mt-1.5">{table.number}</h4>
-                  <p className="text-[10px] opacity-80 mt-0.5">{getTableLabel(table.status)}</p>
+                  <select
+                    value={table.status}
+                    onChange={(e) => onUpdateTableStatus?.(table.id, e.target.value as Table['status'])}
+                    className="mt-1 text-[10px] font-bold bg-white/50 dark:bg-black/20 rounded-lg px-2 py-1 border-0 outline-none text-center cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="empty">{isRTL ? 'فارغة' : 'Empty'}</option>
+                    <option value="occupied">{isRTL ? 'مشغولة' : 'Occupied'}</option>
+                    <option value="ordering">{isRTL ? 'تتصفح المنيو' : 'Browsing'}</option>
+                    <option value="waiting">{isRTL ? 'بانتظار الطلب' : 'Waiting'}</option>
+                    <option value="eating">{isRTL ? 'تتناول الطعام' : 'Eating'}</option>
+                    <option value="dirty">{isRTL ? 'بحاجة تنظيف' : 'Needs Cleaning'}</option>
+                  </select>
                   <span className="inline-block text-[9px] font-bold bg-white/50 px-2 py-0.5 rounded-full mt-2 dark:bg-black/10">
                     {table.capacity} {isRTL ? 'أشخاص' : 'Pax'}
                   </span>

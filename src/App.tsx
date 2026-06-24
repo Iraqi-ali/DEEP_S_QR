@@ -96,33 +96,42 @@ export default function App() {
     });
   }, []);
 
-  // ── Poll for new orders (dashboard only) ──────────────────
+  // ── Poll for new orders & waiter calls (dashboard only) ──
+  const prevTableStatuses = useRef<Record<string, string>>({});
+
   useEffect(() => {
     if (isGuestMode || loading) return;
     const poll = setInterval(async () => {
       try {
-        const fresh = await api.getOrders();
+        const [fresh, freshTables] = await Promise.all([api.getOrders(), api.getTables()]);
+
+        // Check new orders
         const newIds = new Set(fresh.map(o => o.id));
         const diff = [...newIds].filter(id => !lastKnownOrderIds.has(id));
         if (diff.length > 0 && lastKnownOrderIds.size > 0) {
           const newOrder = fresh.find(o => diff.includes(o.id));
           if (newOrder) {
-            setNotification({
-              title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!',
-              subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`,
-              type: 'success'
-            });
+            setNotification({ title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`, type: 'success' });
             setOrders(fresh);
-            // تحديث حالة الطاولة تلقائياً إلى مشغولة
             setTables(prev => prev.map(tb => tb.id === newOrder.tableId ? { ...tb, status: 'occupied' } : tb));
             api.updateTable(newOrder.tableId, { status: 'occupied' }).catch(() => {});
           }
         }
         setLastKnownOrderIds(newIds);
+
+        // Check waiter calls (table status changed to 'waiting')
+        freshTables.forEach(t => {
+          const prev = prevTableStatuses.current[t.id];
+          if (prev && prev !== 'waiting' && t.status === 'waiting') {
+            setNotification({ title: isRTL ? '🔔 استدعاء نادل!' : '🔔 Waiter Called!', subtitle: isRTL ? `طاولة ${t.number} تطلب النادل` : `Table ${t.number} needs a waiter`, type: 'warning' });
+          }
+          prevTableStatuses.current[t.id] = t.status;
+        });
+        setTables(freshTables);
       } catch {}
-    }, 5000);
+    }, 4000);
     return () => clearInterval(poll);
-  }, [isGuestMode, loading, lastKnownOrderIds, isRTL, tables]);
+  }, [isGuestMode, loading]);
 
   // ── Handlers ──────────────────────────────────────────────
   const notify = useCallback((title: string, subtitle?: string, type: NotificationPayload['type'] = 'success') => {
@@ -254,7 +263,7 @@ export default function App() {
       case 'dashboard':
         return <DashboardView orders={orders} menuItems={menuItems} tables={tables} restaurants={restaurants} activeRestaurantId={activeRestaurantId} lang={lang} onNavigate={setActiveTab} onSimulateScan={handleSimulateScan} onUpdateTableStatus={handleUpdateTableStatus} />;
       case 'tables':
-        return <TablesView tables={tables} onAddTable={handleAddTable} onDeleteTable={handleDeleteTable} onSimulateScan={handleSimulateScan} lang={lang} restaurantName={currentRestaurant.name} restaurantLogo={currentRestaurant.logo} />;
+        return <TablesView tables={tables} onAddTable={handleAddTable} onDeleteTable={handleDeleteTable} onSimulateScan={handleSimulateScan} onUpdateTableStatus={handleUpdateTableStatus} lang={lang} restaurantName={currentRestaurant.name} restaurantLogo={currentRestaurant.logo} />;
       case 'menu':
         return <MenuView menuItems={filteredMenu} onAddMenuItem={handleAddMenuItem} onDeleteMenuItem={handleDeleteMenuItem} onToggleAvailability={handleToggleAvailability} onTogglePopular={handleTogglePopular} lang={lang} />;
       case 'orders':

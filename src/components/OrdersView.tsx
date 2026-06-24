@@ -81,7 +81,13 @@ export default function OrdersView({
     }
   };
 
-  const activeOrders = orders.filter(o => o.status !== 'paid');
+  const isPayBefore = currentRestaurant.paymentMode === 'before';
+  const activeOrders = orders.filter(o => {
+    if (o.status === 'paid') return false;
+    if (isPayBefore && o.status === 'pending') return false; // awaiting payment
+    return true;
+  });
+  const pendingPaymentOrders = isPayBefore ? orders.filter(o => o.status === 'pending') : [];
   const paidOrders = orders.filter(o => o.status === 'paid');
 
   return (

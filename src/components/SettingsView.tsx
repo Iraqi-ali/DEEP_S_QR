@@ -44,6 +44,7 @@ export default function SettingsView({
   const [tax, setTax] = useState(String(current.taxRate * 100));
   const [service, setService] = useState(String(current.serviceCharge));
   const [currency, setCurrency] = useState(current.currency);
+  const [paymentMode, setPaymentMode] = useState(current.paymentMode || 'after');
 
   // Add new restaurant states
   const [newName, setNewName] = useState('');
@@ -58,7 +59,7 @@ export default function SettingsView({
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateRestaurant({ ...current, name, logo, phone, address, city, taxRate: parseFloat(tax) / 100 || 0.10, serviceCharge: parseFloat(service) || 0, currency });
+    onUpdateRestaurant({ ...current, name, logo, phone, address, city, taxRate: parseFloat(tax) / 100 || 0.10, serviceCharge: parseFloat(service) || 0, currency, paymentMode });
     triggerNotification({ title: t.updateSuccess, type: 'success' });
   };
 
@@ -202,6 +203,13 @@ export default function SettingsView({
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400">{t.currencyInput}</label>
                 <input value={currency} onChange={e => setCurrency(e.target.value)} className="w-full rounded-xl border p-2 text-xs font-semibold dark:bg-zinc-900 dark:border-zinc-800" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400">{isRTL ? 'وضع الدفع' : 'Payment Mode'}</label>
+              <div className="flex bg-slate-100 p-0.5 rounded-xl dark:bg-zinc-800">
+                <button type="button" onClick={() => setPaymentMode('after')} className={'flex-1 px-3 py-2 rounded-lg text-xs font-bold ' + (paymentMode === 'after' ? 'bg-white shadow dark:bg-zinc-700' : 'text-slate-400')}>{isRTL ? '🍽️ بعد الأكل' : '🍽️ After Eating'}</button>
+                <button type="button" onClick={() => setPaymentMode('before')} className={'flex-1 px-3 py-2 rounded-lg text-xs font-bold ' + (paymentMode === 'before' ? 'bg-white shadow dark:bg-zinc-700' : 'text-slate-400')}>{isRTL ? '💳 قبل الأكل' : '💳 Before Eating'}</button>
               </div>
             </div>
             <motion.button whileTap={{ scale: 0.98 }} type="submit" className="w-full rounded-full bg-blue-500 py-2.5 text-sm font-bold text-white hover:bg-blue-600">💾 {t.save}</motion.button>

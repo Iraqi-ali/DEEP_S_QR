@@ -25,6 +25,7 @@ export interface Restaurant {
   currency: string;
   taxRate: number;
   serviceCharge: number;
+  paymentMode: 'before' | 'after';
 }
 
 export interface Table {
