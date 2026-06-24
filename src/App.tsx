@@ -344,7 +344,7 @@ export default function App() {
         )}
 
         {/* Content */}
-        <div className="px-4 pt-4 pb-28 md:px-8 max-w-5xl mx-auto">
+        <div className="px-4 pt-4 pb-28 md:px-8 max-w-5xl mx-auto" ref={contentRef}>
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
               {renderView()}
