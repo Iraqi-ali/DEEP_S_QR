@@ -197,15 +197,30 @@ export default function MenuView({
 
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                رابط صورة الطبق (اختياري)
+                صورة الطبق
               </label>
-              <input
-                type="text"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/dish.jpg"
-                className="w-full rounded-xl border border-slate-200/80 bg-slate-50/50 py-2 px-3 text-xs font-semibold outline-none transition focus:border-blue-500 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="رابط الصورة أو حمل ملف"
+                  className="flex-1 rounded-xl border border-slate-200/80 bg-slate-50/50 py-2 px-3 text-xs font-semibold outline-none transition focus:border-blue-500 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                />
+                <label className="flex items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-800 px-3 text-xs font-bold cursor-pointer hover:bg-slate-200 dark:hover:bg-zinc-700 transition">
+                  📁 رفع
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setImageUrl(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }} />
+                </label>
+              </div>
+              {imageUrl && (
+                <img src={imageUrl} className="h-16 w-16 rounded-xl object-cover border mt-1" />
+              )}
             </div>
 
             <div className="space-y-1">
