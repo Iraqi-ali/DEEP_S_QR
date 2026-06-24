@@ -1,174 +1,75 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
+ * QR Menu & Table System - Iraqi Edition 🇮🇶
+ * بيانات عراقية حقيقية - دينار عراقي - مدن ومطاعم عراقية
  */
-
 import { Restaurant, Table, MenuItem, MenuTheme, Order } from './types';
 
+// ── المطاعم العراقية ────────────────────────────────────────
 export const INITIAL_RESTAURANTS: Restaurant[] = [
   {
     id: 'rest-1',
-    name: 'شاورما وجريل الشام',
-    logo: '🥙',
-    phone: '+966 50 123 4567',
-    address: 'الرياض - حي الياسمين - طريق الملك عبدالعزيز',
-    currency: 'SAR',
-    taxRate: 0.15,
-    serviceCharge: 5.00
+    name: 'مطعم القصر العراقي',
+    logo: '🏰',
+    phone: '+964 780 123 4567',
+    address: 'شارع المتنبي - قرب ساحة التحرير',
+    city: 'بغداد',
+    currency: 'د.ع',
+    taxRate: 0.10,
+    serviceCharge: 3000
   },
   {
     id: 'rest-2',
-    name: 'برجر هافن | Burger Haven',
-    logo: '🍔',
-    phone: '+966 55 987 6543',
-    address: 'جدة - طريق الكورنيش - مقابل الحمراء',
-    currency: 'SAR',
-    taxRate: 0.15,
-    serviceCharge: 10.00
+    name: 'مشاوي البصرة',
+    logo: '🥩',
+    phone: '+964 781 987 6543',
+    address: 'شارع الكورنيش - مقابل فندق البصرة',
+    city: 'البصرة',
+    currency: 'د.ع',
+    taxRate: 0.10,
+    serviceCharge: 2000
   },
   {
     id: 'rest-3',
-    name: 'مطبخ البيت اليمني والريفي',
-    logo: '🥘',
-    phone: '+966 56 444 3322',
-    address: 'الدمام - شارع عمر بن الخطاب',
-    currency: 'SAR',
-    taxRate: 0.15,
-    serviceCharge: 0.00
-  },
-  {
-    id: 'rest-4',
-    name: 'أرومـا كافيه | Aroma Lounge',
+    name: 'قهوة أربيل التراثية',
     logo: '☕',
-    phone: '+966 53 111 2222',
-    address: 'الرياض - بوليفارد سيتي',
-    currency: 'SAR',
-    taxRate: 0.15,
-    serviceCharge: 15.00
+    phone: '+964 750 444 3322',
+    address: 'شارع القلعة - سوق القيصري',
+    city: 'أربيل',
+    currency: 'د.ع',
+    taxRate: 0.10,
+    serviceCharge: 5000
   }
 ];
 
+// ── الطاولات ────────────────────────────────────────────────
 export const INITIAL_TABLES: Table[] = [
   { id: 'tb-1', number: 'طاولة 1', capacity: 2, status: 'empty', qrCodeSeed: 'table-1-seed-992' },
   { id: 'tb-2', number: 'طاولة 2', capacity: 4, status: 'ordering', qrCodeSeed: 'table-2-seed-811' },
-  { id: 'tb-3', number: 'طاولة 3 (VIP)', capacity: 6, status: 'waiting', qrCodeSeed: 'table-3-seed-104' },
-  { id: 'tb-4', number: 'طاولة 4 (عائلية)', capacity: 8, status: 'eating', qrCodeSeed: 'table-4-seed-443' },
-  { id: 'tb-5', number: 'طاولة 5 (خارجية)', capacity: 2, status: 'dirty', qrCodeSeed: 'table-5-seed-729' },
+  { id: 'tb-3', number: 'طاولة VIP', capacity: 6, status: 'empty', qrCodeSeed: 'table-3-seed-104' },
+  { id: 'tb-4', number: 'طاولة عائلية', capacity: 8, status: 'eating', qrCodeSeed: 'table-4-seed-443' },
+  { id: 'tb-5', number: 'طاولة خارجية', capacity: 4, status: 'empty', qrCodeSeed: 'table-5-seed-729' },
   { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331' }
 ];
 
+// ── قائمة الطعام العراقية ───────────────────────────────────
 export const INITIAL_MENU_ITEMS: MenuItem[] = [
-  // Restaurant 1: Shawarma & Grill
-  {
-    id: 'item-101',
-    nameAr: 'شاورما دجاج سوبر جامبو',
-    nameEn: 'Super Jumbo Chicken Shawarma',
-    price: 18.00,
-    category: 'Saj & Wraps',
-    image: '🥙',
-    descriptionAr: 'شاورما دجاج متبلة بالخلطة الشامية الخاصة داخل خبز الصاج الطازج مع الثومية والبطاطس والمخلل.',
-    descriptionEn: 'Shami marinated chicken shawarma in fresh saj bread with garlic paste, fries, and pickles.',
-    available: true,
-    isPopular: true
-  },
-  {
-    id: 'item-102',
-    nameAr: 'صحن شاورما لحم عربي',
-    nameEn: 'Arabic Beef Shawarma Platter',
-    price: 32.00,
-    category: 'Platters',
-    image: '🍱',
-    descriptionAr: 'قطع شاورما لحم بلدي بخبز صاج مقطع، تقدم مع بطاطس مقلية، طراطور ومخلل مشكل.',
-    descriptionEn: 'Local beef shawarma pieces in saj bread, served with fries, tarator sauce, and pickles.',
-    available: true,
-    isPopular: true
-  },
-  {
-    id: 'item-103',
-    nameAr: 'كباب لحم دبل مشوي',
-    nameEn: 'Double Grilled Meat Kabab',
-    price: 45.00,
-    category: 'Grills',
-    image: '🍢',
-    descriptionAr: 'سيخان من اللحم المفروم المتبل بالبقدونس والبصل مشوي على الفحم مع حمص ومقبلات.',
-    descriptionEn: 'Two skewers of minced beef seasoned with parsley, grilled on charcoal, served with hummus.',
-    available: true,
-    isPopular: false
-  },
-  {
-    id: 'item-104',
-    nameAr: 'سلطة فتوش بدبس الرمان',
-    nameEn: 'Fattoush Salad with Pomegranate',
-    price: 15.00,
-    category: 'Appetizers',
-    image: '🥗',
-    descriptionAr: 'مزيج من الخضار الطازجة مع الخبز المحمص ودبس الرمان التركي الفاخر وزيت الزيتون.',
-    descriptionEn: 'Fresh mixed greens with toasted bread, pomegranate molasses, and virgin olive oil.',
-    available: true,
-    isPopular: false
-  },
-  {
-    id: 'item-105',
-    nameAr: 'كوكا كولا بارد',
-    nameEn: 'Coca Cola Cold',
-    price: 5.00,
-    category: 'Drinks',
-    image: '🥤',
-    descriptionAr: 'مشروب غازي مثلج ومنعش.',
-    descriptionEn: 'Refreshing chilled carbonated beverage.',
-    available: true,
-    isPopular: false
-  },
+  // مطعم القصر العراقي - بغداد
+  { id: 'item-101', nameAr: 'كباب عراقي على الفحم', nameEn: 'Iraqi Charcoal Kebab', price: 12000, category: 'مشاوي', image: '🍢', descriptionAr: 'كباب لحم عراقي متبل بخليطة البهارات السرية مشوي على الفحم العربي.', descriptionEn: 'Charcoal-grilled Iraqi kebab with secret spices.', available: true, isPopular: true, restaurantId: 'rest-1' },
+  { id: 'item-102', nameAr: 'دولمة بغدادية', nameEn: 'Baghdadi Dolma', price: 10000, category: 'أطباق رئيسية', image: '🍽️', descriptionAr: 'ورق عنب محشي بالأرز واللحم مع دبس الرمان العراقي.', descriptionEn: 'Stuffed grape leaves with rice, meat & pomegranate molasses.', available: true, isPopular: true, restaurantId: 'rest-1' },
+  { id: 'item-103', nameAr: 'قوزي عراقي', nameEn: 'Iraqi Quzi Lamb', price: 25000, category: 'أطباق رئيسية', image: '🍖', descriptionAr: 'خروف كامل محشو بالأرز والمكسرات والزبيب مطبوخ ببطء.', descriptionEn: 'Slow-cooked whole lamb stuffed with rice, nuts & raisins.', available: true, isPopular: true, restaurantId: 'rest-1' },
+  { id: 'item-104', nameAr: 'تبولة عراقية', nameEn: 'Iraqi Tabbouleh', price: 5000, category: 'مقبلات', image: '🥗', descriptionAr: 'برغل ناعم مع بقدونس طازج وطماطم وبصل ونعناع بزيت الزيتون.', descriptionEn: 'Fine bulgur with fresh parsley, tomatoes, mint & olive oil.', available: true, isPopular: false, restaurantId: 'rest-1' },
+  { id: 'item-105', nameAr: 'شاي عراقي', nameEn: 'Iraqi Tea', price: 1500, category: 'مشروبات', image: '🍵', descriptionAr: 'شاي عراقي أصلي يقدم في استكان مع الهيل.', descriptionEn: 'Authentic Iraqi tea served in istikan with cardamom.', available: true, isPopular: false, restaurantId: 'rest-1' },
 
-  // Restaurant 2: Burger Haven
-  {
-    id: 'item-201',
-    nameAr: 'برجر ترافل كلاسيك دبل',
-    nameEn: 'Double Classic Truffle Burger',
-    price: 38.00,
-    category: 'Burgers',
-    image: '🍔',
-    descriptionAr: 'شريحتان من لحم الأنجوس الفاخر مع جبنة تشيدر سائلة وصوص الترافل البري المميز.',
-    descriptionEn: 'Two premium Angus beef patties with melted cheddar cheese and wild truffle signature sauce.',
-    available: true,
-    isPopular: true
-  },
-  {
-    id: 'item-202',
-    nameAr: 'برجر الدجاج المقرمش الحار',
-    nameEn: 'Spicy Crispy Chicken Burger',
-    price: 29.00,
-    category: 'Burgers',
-    image: '🍗',
-    descriptionAr: 'صدر دجاج مقرمش ومتبل بخلطة حارة، خس أمريكي، هالبينو وصوص المايونيز الحار.',
-    descriptionEn: 'Crispy fried chicken breast in hot seasoning, lettuce, jalapenos, and spicy mayo.',
-    available: true,
-    isPopular: true
-  },
-  {
-    id: 'item-203',
-    nameAr: 'بطاطس هافن بالجبنة واللحم',
-    nameEn: 'Haven Loaded Cheese Fries',
-    price: 22.00,
-    category: 'Appetizers',
-    image: '🍟',
-    descriptionAr: 'بطاطس مقرمشة مغطاة بجبنة شيدر الذائبة، قطع لحم مقدد وصوص هافن السري.',
-    descriptionEn: 'Crispy fries loaded with melted cheddar cheese, bacon bits, and signature secret sauce.',
-    available: true,
-    isPopular: false
-  },
-  {
-    id: 'item-204',
-    nameAr: 'مولتن تشوكلت كيك',
-    nameEn: 'Molten Chocolate Cake',
-    price: 24.00,
-    category: 'Desserts',
-    image: '🍰',
-    descriptionAr: 'كيك الشوكولاتة الغني بقلب دافئ ذائب يقدم مع مغرفة من آيس كريم الفانيلا الفاخر.',
-    descriptionEn: 'Warm chocolate cake with lava core, served with a scoop of premium vanilla ice cream.',
-    available: true,
-    isPopular: true
-  }
+  // مشاوي البصرة
+  { id: 'item-201', nameAr: 'سمك مسكوف البصرة', nameEn: 'Basra Masgouf Fish', price: 20000, category: 'مشاوي', image: '🐟', descriptionAr: 'سمك شبوط طازج من شط العرب مشوي على الطريقة البصرية.', descriptionEn: 'Fresh carp from Shatt al-Arab, Basra-style grilled.', available: true, isPopular: true, restaurantId: 'rest-2' },
+  { id: 'item-202', nameAr: 'تشريبة بامية', nameEn: 'Okra Stew', price: 8000, category: 'أطباق رئيسية', image: '🥘', descriptionAr: 'بامية طازجة مطبوخة مع لحم الضأن والطماطم والثوم.', descriptionEn: 'Fresh okra cooked with lamb, tomatoes & garlic.', available: true, isPopular: true, restaurantId: 'rest-2' },
+  { id: 'item-203', nameAr: 'باجة عراقية', nameEn: 'Iraqi Pacha', price: 15000, category: 'أطباق رئيسية', image: '🍲', descriptionAr: 'رأس خروف مطبوخ ببطء مع الأرز والبهارات العراقية.', descriptionEn: 'Slow-cooked sheep head with rice & Iraqi spices.', available: true, isPopular: false, restaurantId: 'rest-2' },
+  { id: 'item-204', nameAr: 'كليجة البصرة', nameEn: 'Basra Kleicha', price: 4000, category: 'حلويات', image: '🍪', descriptionAr: 'معجنات عراقية محشوة بالتمر والهيل تقدم مع الشاي.', descriptionEn: 'Iraqi pastries filled with dates & cardamom.', available: true, isPopular: true, restaurantId: 'rest-2' },
+
+  // قهوة أربيل التراثية
+  { id: 'item-301', nameAr: 'قهوة عربية', nameEn: 'Arabic Coffee', price: 3000, category: 'مشروبات ساخنة', image: '☕', descriptionAr: 'قهوة عربية أصيلة مع الهيل تقدم في فنجان تراثي.', descriptionEn: 'Authentic Arabic coffee with cardamom.', available: true, isPopular: true, restaurantId: 'rest-3' },
+  { id: 'item-302', nameAr: 'شيش برك', nameEn: 'Shish Barak', price: 9000, category: 'أطباق رئيسية', image: '🥟', descriptionAr: 'عجينة محشية باللحم ومطبوخة باللبن العراقي.', descriptionEn: 'Meat-filled dumplings cooked in Iraqi yogurt sauce.', available: true, isPopular: true, restaurantId: 'rest-3' },
+  { id: 'item-303', nameAr: 'كبة موصلية', nameEn: 'Mosul Kibbeh', price: 7000, category: 'مقبلات', image: '🫓', descriptionAr: 'كبة برغل محشية باللحم والصنوبر مقلية بزيت الزيتون.', descriptionEn: 'Bulgur kibbeh stuffed with meat & pine nuts.', available: true, isPopular: false, restaurantId: 'rest-3' },
 ];
 
 export const THEMES_LIST: MenuTheme[] = [
@@ -456,67 +357,109 @@ export const THEMES_LIST: MenuTheme[] = [
 
 export const INITIAL_ORDERS: Order[] = [
   {
-    id: 'order-1',
-    tableId: 'tb-2',
-    restaurantId: 'rest-1',
+    id: 'order-1', tableId: 'tb-2', restaurantId: 'rest-1',
     items: [
-      { id: 'oi-1', menuItemId: 'item-101', quantity: 2, priceAtOrder: 18.00, notes: 'بدون بصل وبدون ثوم زيادة' },
-      { id: 'oi-2', menuItemId: 'item-105', quantity: 2, priceAtOrder: 5.00 }
+      { id: 'oi-1', menuItemId: 'item-101', quantity: 2, priceAtOrder: 12000, notes: 'بدون بهارات حارة' },
+      { id: 'oi-2', menuItemId: 'item-105', quantity: 3, priceAtOrder: 1500 }
     ],
-    subtotal: 46.00,
-    tax: 6.90,
-    service: 5.00,
-    total: 57.90,
-    status: 'preparing',
-    createdAt: new Date(Date.now() - 30 * 60000).toISOString() // 30 mins ago
+    subtotal: 28500, tax: 2850, service: 3000, total: 34350,
+    status: 'preparing', createdAt: new Date(Date.now() - 30 * 60000).toISOString()
   },
   {
-    id: 'order-2',
-    tableId: 'tb-3',
-    restaurantId: 'rest-1',
+    id: 'order-2', tableId: 'tb-4', restaurantId: 'rest-1',
     items: [
-      { id: 'oi-3', menuItemId: 'item-102', quantity: 1, priceAtOrder: 32.00, notes: 'مخلل إضافي' },
-      { id: 'oi-4', menuItemId: 'item-104', quantity: 1, priceAtOrder: 15.00 },
-      { id: 'oi-5', menuItemId: 'item-105', quantity: 1, priceAtOrder: 5.00 }
+      { id: 'oi-3', menuItemId: 'item-102', quantity: 1, priceAtOrder: 10000, notes: 'إضافة دبس رمان' },
+      { id: 'oi-4', menuItemId: 'item-104', quantity: 2, priceAtOrder: 5000 }
     ],
-    subtotal: 52.00,
-    tax: 7.80,
-    service: 5.00,
-    total: 64.80,
-    status: 'pending',
-    createdAt: new Date(Date.now() - 5 * 60000).toISOString() // 5 mins ago
-  },
-  {
-    id: 'order-3',
-    tableId: 'tb-4',
-    restaurantId: 'rest-2',
-    items: [
-      { id: 'oi-6', menuItemId: 'item-201', quantity: 2, priceAtOrder: 38.00, notes: 'الجبنة واللحمة مستوية جداً' },
-      { id: 'oi-7', menuItemId: 'item-203', quantity: 1, priceAtOrder: 22.00 },
-      { id: 'oi-8', menuItemId: 'item-204', quantity: 1, priceAtOrder: 24.00 }
-    ],
-    subtotal: 122.00,
-    tax: 18.30,
-    service: 10.00,
-    total: 150.30,
-    status: 'served',
-    createdAt: new Date(Date.now() - 75 * 60000).toISOString() // 1h 15m ago
+    subtotal: 20000, tax: 2000, service: 3000, total: 25000,
+    status: 'pending', createdAt: new Date(Date.now() - 5 * 60000).toISOString()
   }
 ];
 
 export const TRANSLATIONS = {
   ar: {
-    appName: 'كييو آر منيو | QR Menu',
-    tagline: 'إدارة متكاملة وشاملة للمطاعم والبارات مع تتبع لحظي للطلبات، وطباعة الفواتير، والـ 20 ثيم المذهلة للزبائن.',
+    appName: 'كييو آر منيو | QR Menu العراق 🇮🇶',
+    tagline: 'إدارة متكاملة للمطاعم العراقية مع تتبع لحظي للطلبات والـ 20 ثيم.',
     statusConnected: 'النظام نشط',
-    searchPlaceholder: 'البحث عن طلبات، أطعمة، طاولات...',
-    battery: 'البطارية',
     back: 'رجوع',
-    save: 'حفظ التعديلات',
-    add: 'إضافة جديدة',
+    save: 'حفظ',
+    add: 'إضافة',
     delete: 'حذف',
     edit: 'تعديل',
     cancel: 'إلغاء',
+    currency: 'د.ع',
+    // Tabs
+    tabDashboard: 'الرئيسية',
+    tabTables: 'الطاولات 🪑',
+    tabMenu: 'المنيو 🍔',
+    tabOrders: 'المطبخ 🧑‍🍳',
+    tabThemes: 'الثيمات 🎨',
+    tabReports: 'التقارير 📈',
+    tabSettings: 'الإعدادات ⚙️',
+    tabSimulator: 'محاكي الزبون 📱',
+    // Dashboard
+    totalSales: 'إجمالي المبيعات',
+    activeTablesCount: 'الطاولات النشطة',
+    pendingOrdersCount: 'الطلبات المعلقة',
+    completedOrdersCount: 'الطلبات المكتملة',
+    bestseller: 'الأكثر مبيعاً',
+    // Tables
+    tablesTitle: 'الطاولات ورموز QR',
+    tablesDesc: 'أضف طاولات مطعمك واطبع رموز QR ليتمكن الزبائن من الطلب مباشرة.',
+    addTable: 'إضافة طاولة',
+    tableName: 'رقم الطاولة',
+    tableCapacity: 'السعة (أفراد)',
+    scanToSimulate: 'محاكاة مسح QR',
+    statusEmpty: 'فارغة',
+    statusOrdering: 'تتصفح المنيو',
+    statusWaiting: 'بانتظار الطلب',
+    statusEating: 'تناول الطعام',
+    statusDirty: 'بحاجة لتنظيف',
+    // Menu
+    menuTitle: 'إدارة المنيو',
+    menuDesc: 'أضف الأطباق والأسعار والصور لمطعمك.',
+    addMenuItem: 'إضافة طبق',
+    foodNameAr: 'الاسم بالعربية',
+    foodNameEn: 'الاسم بالإنجليزية',
+    foodPrice: 'السعر (د.ع)',
+    foodCategory: 'التصنيف',
+    isPopular: 'طبق مميز',
+    isAvailable: 'متوفر',
+    // Orders
+    ordersTitle: 'شاشة المطبخ',
+    ordersDesc: 'تتبع الطلبات وتحديث حالتها.',
+    orderStatusPending: 'قيد الانتظار',
+    orderStatusPreparing: 'قيد التحضير',
+    orderStatusReady: 'جاهز',
+    orderStatusServed: 'تم التقديم',
+    orderStatusPaid: 'مدفوع',
+    // Settings
+    settingsTitle: 'إعدادات المطعم',
+    settingsDesc: 'تعديل بيانات المطعم واللغة والثيم.',
+    language: 'اللغة',
+    theme: 'المظهر',
+    restaurantName: 'اسم المطعم',
+    restaurantPhone: 'رقم الهاتف',
+    restaurantAddress: 'العنوان',
+    taxRateInput: 'نسبة الضريبة %',
+    serviceChargeInput: 'رسوم الخدمة',
+    currencyInput: 'العملة',
+    resetData: 'إعادة ضبط',
+    addRestaurant: 'إضافة مطعم جديد',
+    deleteRestaurant: 'حذف المطعم',
+    superUser: 'مدير النظام',
+    superUserLock: 'قفل المدير',
+    loginRequired: 'يلزم تسجيل الدخول كمدير',
+    // Reports
+    reportsTitle: 'تقارير المبيعات',
+    reportsDesc: 'تحليل المبيعات والإحصائيات.',
+    // General
+    addSuccess: 'تمت الإضافة',
+    deleteSuccess: 'تم الحذف',
+    updateSuccess: 'تم التحديث',
+    resetSuccess: 'تمت إعادة الضبط',
+    printReceipt: 'طباعة الفاتورة 📄',
+  },
     actions: 'الإجراءات',
     filterAll: 'جميع الأقسام',
     category: 'القسم الرئيسي',

@@ -10,13 +10,9 @@ import QRCode from 'qrcode';
 import { Table, Lang } from '../types';
 import { TRANSLATIONS } from '../data';
 
-// Helper to construct a public URL. Replaces internal 'ais-dev-' with 'ais-pre-' to bypass dev authentication when scanned by customers.
+// Helper to construct the guest menu URL
 export function getPublicGuestMenuUrl(tableId: string): string {
-  let origin = window.location.origin;
-  if (origin.includes('ais-dev-')) {
-    origin = origin.replace('ais-dev-', 'ais-pre-');
-  }
-  return `${origin}/?tableId=${tableId}`;
+  return `${window.location.origin}/?tableId=${tableId}`;
 }
 
 // Compact sub-component to render scannable table QR code client-side

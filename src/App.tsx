@@ -14,7 +14,6 @@ import { INITIAL_RESTAURANTS, INITIAL_TABLES, INITIAL_MENU_ITEMS, THEMES_LIST, I
 import { api } from './api';
 
 // Import sub-views
-import StatusHeader from './components/StatusHeader';
 import DynamicIsland from './components/DynamicIsland';
 import DashboardView from './components/DashboardView';
 import TablesView from './components/TablesView';
@@ -39,6 +38,7 @@ export default function App() {
   const [selectedSimulatorTableId, setSelectedSimulatorTableId] = useState('tb-1');
   const [notification, setNotification] = useState<NotificationPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSuperUser, setIsSuperUser] = useState(false);
 
   // ── Derived ───────────────────────────────────────────────
   const t = TRANSLATIONS[lang];
@@ -201,6 +201,25 @@ export default function App() {
     api.updateRestaurant(r).catch(() => {});
   };
 
+  const handleAddRestaurant = (r: Restaurant) => {
+    setRestaurants(prev => [...prev, r]);
+    api.createRestaurant(r).catch(() => {});
+  };
+
+  const handleDeleteRestaurant = (id: string) => {
+    if (restaurants.length <= 1) return;
+    setRestaurants(prev => prev.filter(rr => rr.id !== id));
+    api.deleteRestaurant(id).catch(() => {});
+    if (activeRestaurantId === id) {
+      const remaining = restaurants.filter(rr => rr.id !== id);
+      if (remaining.length > 0) {
+        setActiveRestaurantId(remaining[0].id);
+        api.saveSettings({ active_restaurant_id: remaining[0].id }).catch(() => {});
+      }
+    }
+    notify(isRTL ? 'تم حذف المطعم' : 'Restaurant Deleted');
+  };
+
   const handleResetData = async () => {
     await api.resetAll();
     setRestaurants(INITIAL_RESTAURANTS);
@@ -214,9 +233,8 @@ export default function App() {
 
   // ── View Router ───────────────────────────────────────────
   const filterMenuByRestaurant = (items: MenuItem[]) => {
-    if (activeRestaurantId === 'rest-1') return items.filter(i => i.id.startsWith('item-1'));
-    if (activeRestaurantId === 'rest-2') return items.filter(i => i.id.startsWith('item-2'));
-    return items;
+    const prefix = activeRestaurantId === 'rest-1' ? 'item-1' : activeRestaurantId === 'rest-2' ? 'item-2' : 'item-3';
+    return items.filter(i => i.id.startsWith(prefix));
   };
 
   const renderView = () => {
@@ -237,7 +255,7 @@ export default function App() {
       case 'reports':
         return <ReportsView orders={orders} menuItems={menuItems} lang={lang} />;
       case 'settings':
-        return <SettingsView restaurants={restaurants} activeRestaurantId={activeRestaurantId} onSelectRestaurant={handleSelectRestaurant} onUpdateRestaurant={handleUpdateRestaurant} lang={lang} onSetLang={handleSetLang} theme={theme} onSetTheme={handleSetTheme} onResetData={handleResetData} triggerNotification={setNotification} />;
+        return <SettingsView restaurants={restaurants} activeRestaurantId={activeRestaurantId} onSelectRestaurant={handleSelectRestaurant} onUpdateRestaurant={handleUpdateRestaurant} onAddRestaurant={handleAddRestaurant} onDeleteRestaurant={handleDeleteRestaurant} lang={lang} onSetLang={handleSetLang} theme={theme} onSetTheme={handleSetTheme} onResetData={handleResetData} triggerNotification={setNotification} isSuperUser={isSuperUser} onSetSuperUser={setIsSuperUser} />;
       case 'customer-simulator':
         return <CustomerSimulatorView restaurant={currentRestaurant} table={activeTable} menuItems={filteredMenu} activeTheme={currentTheme} onSubmitOrder={handleSubmitCustomerOrder} lang={lang} onSetLang={handleSetLang} />;
       default:
@@ -277,8 +295,6 @@ export default function App() {
 
       {/* Tablet frame */}
       <div className="relative flex h-[840px] w-full max-w-[1080px] flex-col overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/40 shadow-2xl backdrop-blur-2xl dark:border-zinc-800/60 dark:bg-zinc-950/40 transition-all duration-300 shadow-black/5" dir={isRTL ? 'rtl' : 'ltr'}>
-        <StatusHeader lang={lang} />
-
         <DynamicIsland notification={notification} onClear={() => setNotification(null)} lang={lang} />
 
         {/* Back button */}

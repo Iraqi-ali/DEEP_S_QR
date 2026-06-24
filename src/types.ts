@@ -1,19 +1,19 @@
 /**
- * @license
- * SPDX-License-Identifier: Apache-2.0
+ * QR Menu & Table System - TypeScript Types
+ * Iraq Edition 🇮🇶
  */
 
 export type ThemeMode = 'light' | 'dark';
 export type Lang = 'ar' | 'en';
 
-export type ActiveTab = 
-  | 'dashboard' 
-  | 'tables' 
-  | 'menu' 
-  | 'orders' 
-  | 'themes' 
-  | 'reports' 
-  | 'settings' 
+export type ActiveTab =
+  | 'dashboard'
+  | 'tables'
+  | 'menu'
+  | 'orders'
+  | 'themes'
+  | 'reports'
+  | 'settings'
   | 'customer-simulator';
 
 export interface Restaurant {
@@ -22,9 +22,10 @@ export interface Restaurant {
   logo: string;
   phone: string;
   address: string;
+  city: string;
   currency: string;
-  taxRate: number; // e.g. 0.15 for 15% VAT
-  serviceCharge: number; // flat fee or percentage
+  taxRate: number;
+  serviceCharge: number;
 }
 
 export interface Table {
@@ -32,7 +33,7 @@ export interface Table {
   number: string;
   capacity: number;
   status: 'empty' | 'ordering' | 'waiting' | 'eating' | 'dirty';
-  qrCodeSeed: string; // custom string to display or represent QR code
+  qrCodeSeed: string;
 }
 
 export interface MenuItem {
@@ -46,6 +47,7 @@ export interface MenuItem {
   descriptionEn: string;
   available: boolean;
   isPopular?: boolean;
+  restaurantId?: string;
 }
 
 export interface OrderItem {
@@ -66,7 +68,7 @@ export interface Order {
   service: number;
   total: number;
   status: 'pending' | 'preparing' | 'ready' | 'served' | 'paid';
-  createdAt: string; // ISO String
+  createdAt: string;
   paymentMethod?: 'cash' | 'card';
 }
 
@@ -74,12 +76,12 @@ export interface MenuTheme {
   id: string;
   nameAr: string;
   nameEn: string;
-  primary: string; // Hex color
+  primary: string;
   secondary: string;
   accent: string;
-  gradientFrom: string; // Tailwind color class or hex
+  gradientFrom: string;
   gradientTo: string;
-  bgClass: string; // e.g. bg-white dark:bg-zinc-900
+  bgClass: string;
   cardClass: string;
   fontClass: string;
   badgeClass: string;

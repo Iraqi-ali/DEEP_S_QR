@@ -24,7 +24,7 @@ const DB_FILE = path.join(dataDir, 'data.json');
 console.log(`📁 Database: ${DB_FILE}`);
 
 let store = {
-  settings: { lang: 'ar', theme: 'light', active_restaurant_id: 'rest-1', active_theme_id: 'theme-sunset' },
+  settings: { lang: 'ar', theme: 'light', active_restaurant_id: 'rest-1', active_theme_id: 'theme-sunset', super_password: 'admin123' },
   restaurants: [], tables: [], menu_items: [], orders: [], order_items: []
 };
 
@@ -40,10 +40,9 @@ loadStore();
 // ── Seed if empty ───────────────────────────────────────────
 if (store.restaurants.length === 0) {
   store.restaurants = [
-    { id: 'rest-1', name: 'شاورما وجريل الشام', logo: '🥙', phone: '+966 50 123 4567', address: 'الرياض - حي الياسمين', currency: 'SAR', taxRate: 0.15, serviceCharge: 5 },
-    { id: 'rest-2', name: 'برجر هافن | Burger Haven', logo: '🍔', phone: '+966 55 987 6543', address: 'جدة - طريق الكورنيش', currency: 'SAR', taxRate: 0.15, serviceCharge: 10 },
-    { id: 'rest-3', name: 'مطبخ البيت اليمني والريفي', logo: '🥘', phone: '+966 56 444 3322', address: 'الدمام - شارع عمر بن الخطاب', currency: 'SAR', taxRate: 0.15, serviceCharge: 0 },
-    { id: 'rest-4', name: 'أرومـا كافيه | Aroma Lounge', logo: '☕', phone: '+966 53 111 2222', address: 'الرياض - بوليفارد سيتي', currency: 'SAR', taxRate: 0.15, serviceCharge: 15 }
+    { id: 'rest-1', name: 'مطعم القصر العراقي', logo: '🏰', phone: '+964 780 123 4567', address: 'شارع المتنبي - قرب ساحة التحرير', city: 'بغداد', currency: 'د.ع', taxRate: 0.10, serviceCharge: 3000 },
+    { id: 'rest-2', name: 'مشاوي البصرة', logo: '🥩', phone: '+964 781 987 6543', address: 'شارع الكورنيش - مقابل فندق البصرة', city: 'البصرة', currency: 'د.ع', taxRate: 0.10, serviceCharge: 2000 },
+    { id: 'rest-3', name: 'قهوة أربيل التراثية', logo: '☕', phone: '+964 750 444 3322', address: 'شارع القلعة - سوق القيصري', city: 'أربيل', currency: 'د.ع', taxRate: 0.10, serviceCharge: 5000 }
   ];
   store.tables = [
     { id: 'tb-1', number: 'طاولة 1', capacity: 2, status: 'empty', qrCodeSeed: 'table-1-seed-992', restaurantId: 'rest-1' },
@@ -54,32 +53,31 @@ if (store.restaurants.length === 0) {
     { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331', restaurantId: 'rest-1' }
   ];
   store.menu_items = [
-    { id: 'item-101', nameAr: 'شاورما دجاج سوبر جامبو', nameEn: 'Super Jumbo Chicken Shawarma', price: 18, category: 'Saj & Wraps', image: '🥙', descriptionAr: 'شاورما دجاج متبلة بالخلطة الشامية', descriptionEn: 'Shami marinated chicken shawarma', available: true, isPopular: true, restaurantId: 'rest-1' },
-    { id: 'item-102', nameAr: 'صحن شاورما لحم عربي', nameEn: 'Arabic Beef Shawarma Platter', price: 32, category: 'Platters', image: '🍱', descriptionAr: 'قطع شاورما لحم بلدي', descriptionEn: 'Local beef shawarma pieces', available: true, isPopular: true, restaurantId: 'rest-1' },
-    { id: 'item-103', nameAr: 'كباب لحم دبل مشوي', nameEn: 'Double Grilled Meat Kabab', price: 45, category: 'Grills', image: '🍢', descriptionAr: 'سيخان من اللحم المفروم المتبل', descriptionEn: 'Two skewers of minced beef', available: true, isPopular: false, restaurantId: 'rest-1' },
-    { id: 'item-104', nameAr: 'سلطة فتوش بدبس الرمان', nameEn: 'Fattoush Salad', price: 15, category: 'Appetizers', image: '🥗', descriptionAr: 'مزيج من الخضار الطازجة', descriptionEn: 'Fresh mixed greens', available: true, isPopular: false, restaurantId: 'rest-1' },
-    { id: 'item-105', nameAr: 'كوكا كولا بارد', nameEn: 'Coca Cola Cold', price: 5, category: 'Drinks', image: '🥤', descriptionAr: 'مشروب غازي مثلج', descriptionEn: 'Refreshing cold beverage', available: true, isPopular: false, restaurantId: 'rest-1' },
-    { id: 'item-201', nameAr: 'برجر ترافل كلاسيك دبل', nameEn: 'Double Classic Truffle Burger', price: 38, category: 'Burgers', image: '🍔', descriptionAr: 'شريحتان من لحم الأنجوس', descriptionEn: 'Two premium Angus beef patties', available: true, isPopular: true, restaurantId: 'rest-2' },
-    { id: 'item-202', nameAr: 'برجر الدجاج المقرمش الحار', nameEn: 'Spicy Crispy Chicken Burger', price: 29, category: 'Burgers', image: '🍗', descriptionAr: 'صدر دجاج مقرمش', descriptionEn: 'Crispy fried chicken breast', available: true, isPopular: true, restaurantId: 'rest-2' },
-    { id: 'item-203', nameAr: 'بطاطس هافن بالجبنة واللحم', nameEn: 'Haven Loaded Cheese Fries', price: 22, category: 'Appetizers', image: '🍟', descriptionAr: 'بطاطس مقرمشة بالجبنة', descriptionEn: 'Crispy fries with cheese', available: true, isPopular: false, restaurantId: 'rest-2' },
-    { id: 'item-204', nameAr: 'مولتن تشوكلت كيك', nameEn: 'Molten Chocolate Cake', price: 24, category: 'Desserts', image: '🍰', descriptionAr: 'كيك الشوكولاتة الغني', descriptionEn: 'Rich chocolate lava cake', available: true, isPopular: true, restaurantId: 'rest-2' }
+    { id: 'item-101', nameAr: 'كباب عراقي على الفحم', nameEn: 'Iraqi Charcoal Kebab', price: 12000, category: 'مشاوي', image: '🍢', descriptionAr: 'كباب لحم عراقي متبل مشوي على الفحم.', descriptionEn: 'Charcoal-grilled Iraqi kebab.', available: true, isPopular: true, restaurantId: 'rest-1' },
+    { id: 'item-102', nameAr: 'دولمة بغدادية', nameEn: 'Baghdadi Dolma', price: 10000, category: 'أطباق رئيسية', image: '🍽️', descriptionAr: 'ورق عنب محشي بالأرز واللحم.', descriptionEn: 'Stuffed grape leaves with rice & meat.', available: true, isPopular: true, restaurantId: 'rest-1' },
+    { id: 'item-103', nameAr: 'قوزي عراقي', nameEn: 'Iraqi Quzi Lamb', price: 25000, category: 'أطباق رئيسية', image: '🍖', descriptionAr: 'خروف محشو بالأرز والمكسرات.', descriptionEn: 'Slow-cooked stuffed lamb.', available: true, isPopular: true, restaurantId: 'rest-1' },
+    { id: 'item-104', nameAr: 'تبولة عراقية', nameEn: 'Iraqi Tabbouleh', price: 5000, category: 'مقبلات', image: '🥗', descriptionAr: 'برغل مع بقدونس طازج.', descriptionEn: 'Fine bulgur with fresh parsley.', available: true, isPopular: false, restaurantId: 'rest-1' },
+    { id: 'item-105', nameAr: 'شاي عراقي', nameEn: 'Iraqi Tea', price: 1500, category: 'مشروبات', image: '🍵', descriptionAr: 'شاي عراقي بالهيل.', descriptionEn: 'Iraqi tea with cardamom.', available: true, isPopular: false, restaurantId: 'rest-1' },
+    { id: 'item-201', nameAr: 'سمك مسكوف البصرة', nameEn: 'Basra Masgouf Fish', price: 20000, category: 'مشاوي', image: '🐟', descriptionAr: 'سمك شبوط مشوي على الطريقة البصرية.', descriptionEn: 'Basra-style grilled fish.', available: true, isPopular: true, restaurantId: 'rest-2' },
+    { id: 'item-202', nameAr: 'تشريبة بامية', nameEn: 'Okra Stew', price: 8000, category: 'أطباق رئيسية', image: '🥘', descriptionAr: 'بامية مع لحم الضأن.', descriptionEn: 'Okra cooked with lamb.', available: true, isPopular: true, restaurantId: 'rest-2' },
+    { id: 'item-203', nameAr: 'باجة عراقية', nameEn: 'Iraqi Pacha', price: 15000, category: 'أطباق رئيسية', image: '🍲', descriptionAr: 'رأس خروف مطبوخ ببطء.', descriptionEn: 'Slow-cooked sheep head.', available: true, isPopular: false, restaurantId: 'rest-2' },
+    { id: 'item-204', nameAr: 'كليجة البصرة', nameEn: 'Basra Kleicha', price: 4000, category: 'حلويات', image: '🍪', descriptionAr: 'معجنات محشوة بالتمر.', descriptionEn: 'Date-filled pastries.', available: true, isPopular: true, restaurantId: 'rest-2' },
+    { id: 'item-301', nameAr: 'قهوة عربية', nameEn: 'Arabic Coffee', price: 3000, category: 'مشروبات ساخنة', image: '☕', descriptionAr: 'قهوة عربية بالهيل.', descriptionEn: 'Arabic coffee with cardamom.', available: true, isPopular: true, restaurantId: 'rest-3' },
+    { id: 'item-302', nameAr: 'شيش برك', nameEn: 'Shish Barak', price: 9000, category: 'أطباق رئيسية', image: '🥟', descriptionAr: 'عجينة محشية باللحم واللبن.', descriptionEn: 'Meat dumplings in yogurt sauce.', available: true, isPopular: true, restaurantId: 'rest-3' },
+    { id: 'item-303', nameAr: 'كبة موصلية', nameEn: 'Mosul Kibbeh', price: 7000, category: 'مقبلات', image: '🫓', descriptionAr: 'كبة برغل باللحم والصنوبر.', descriptionEn: 'Bulgur kibbeh with meat & pine nuts.', available: true, isPopular: false, restaurantId: 'rest-3' }
   ];
   const now = Date.now();
   store.orders = [
-    { id: 'order-1', tableId: 'tb-2', restaurantId: 'rest-1', subtotal: 46, tax: 6.9, service: 5, total: 57.9, status: 'preparing', createdAt: new Date(now - 30*60000).toISOString(), paymentMethod: null },
-    { id: 'order-2', tableId: 'tb-3', restaurantId: 'rest-1', subtotal: 52, tax: 7.8, service: 5, total: 64.8, status: 'pending', createdAt: new Date(now - 5*60000).toISOString(), paymentMethod: null },
-    { id: 'order-3', tableId: 'tb-4', restaurantId: 'rest-2', subtotal: 122, tax: 18.3, service: 10, total: 150.3, status: 'served', createdAt: new Date(now - 75*60000).toISOString(), paymentMethod: 'cash' }
+    { id: 'order-1', tableId: 'tb-2', restaurantId: 'rest-1', subtotal: 28500, tax: 2850, service: 3000, total: 34350, status: 'preparing', createdAt: new Date(now - 30*60000).toISOString(), paymentMethod: null },
+    { id: 'order-2', tableId: 'tb-4', restaurantId: 'rest-1', subtotal: 20000, tax: 2000, service: 3000, total: 25000, status: 'pending', createdAt: new Date(now - 5*60000).toISOString(), paymentMethod: null }
   ];
   store.order_items = [
-    { id: 'oi-1', orderId: 'order-1', menuItemId: 'item-101', quantity: 2, priceAtOrder: 18, notes: 'بدون بصل' },
-    { id: 'oi-2', orderId: 'order-1', menuItemId: 'item-105', quantity: 2, priceAtOrder: 5, notes: '' },
-    { id: 'oi-3', orderId: 'order-2', menuItemId: 'item-102', quantity: 1, priceAtOrder: 32, notes: 'مخلل إضافي' },
-    { id: 'oi-4', orderId: 'order-2', menuItemId: 'item-104', quantity: 1, priceAtOrder: 15, notes: '' },
-    { id: 'oi-5', orderId: 'order-2', menuItemId: 'item-105', quantity: 1, priceAtOrder: 5, notes: '' },
-    { id: 'oi-6', orderId: 'order-3', menuItemId: 'item-201', quantity: 2, priceAtOrder: 38, notes: 'مستوية جداً' },
-    { id: 'oi-7', orderId: 'order-3', menuItemId: 'item-203', quantity: 1, priceAtOrder: 22, notes: '' },
-    { id: 'oi-8', orderId: 'order-3', menuItemId: 'item-204', quantity: 1, priceAtOrder: 24, notes: '' }
+    { id: 'oi-1', orderId: 'order-1', menuItemId: 'item-101', quantity: 2, priceAtOrder: 12000, notes: 'بدون بهارات حارة' },
+    { id: 'oi-2', orderId: 'order-1', menuItemId: 'item-105', quantity: 3, priceAtOrder: 1500, notes: '' },
+    { id: 'oi-3', orderId: 'order-2', menuItemId: 'item-102', quantity: 1, priceAtOrder: 10000, notes: 'إضافة دبس رمان' },
+    { id: 'oi-4', orderId: 'order-2', menuItemId: 'item-104', quantity: 2, priceAtOrder: 5000, notes: '' }
   ];
+  store.settings.super_password = 'admin123';
   saveStore();
   console.log('✅ Seeded initial data');
 }
