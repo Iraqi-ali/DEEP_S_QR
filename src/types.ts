@@ -13,8 +13,7 @@ export type ActiveTab =
   | 'orders'
   | 'themes'
   | 'reports'
-  | 'settings'
-  | 'customer-simulator';
+  | 'settings';
 
 export interface Restaurant {
   id: string;

@@ -119,44 +119,38 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
   const currentStep = statusSteps.findIndex(s => s.key === orderStatus);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="relative h-[700px] w-[360px] rounded-[2.5rem] bg-zinc-900 p-3 shadow-2xl border-4 border-zinc-800 flex flex-col overflow-hidden">
-        {/* Notch */}
-        <div className="absolute top-1 inset-x-0 flex justify-center z-50 pointer-events-none">
-          <div className="h-5 w-24 bg-black rounded-full" />
-        </div>
-
-        <div className={`flex-1 rounded-[2rem] overflow-hidden flex flex-col ${theme.bgClass} ${theme.fontClass}`}>
-          {/* Header */}
-          <div className="pt-7 px-4 pb-3 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-zinc-950/20 backdrop-blur-md shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{restaurant.logo}</span>
-              <div>
-                <h5 className="text-[13px] font-extrabold">{restaurant.name}</h5>
-                <p className="text-[9px] opacity-60">{table.number} • {restaurant.city}</p>
-              </div>
-            </div>
-            <div className="flex gap-1">
-              <button onClick={callWaiter} className={`p-1.5 rounded-full text-[10px] font-bold transition ${waiterCalled ? 'bg-amber-500 text-white' : 'bg-black/5 dark:bg-white/10'}`}>
-                <Bell size={14} />
-              </button>
-              <button onClick={() => onSetLang(lang === 'ar' ? 'en' : 'ar')} className="text-[9px] font-bold bg-black/5 dark:bg-white/10 px-2 rounded-full">
-                {lang === 'ar' ? 'EN' : 'AR'}
-              </button>
+    <div className={`min-h-screen ${theme.bgClass} ${theme.fontClass}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="max-w-lg mx-auto min-h-screen flex flex-col">
+        {/* Header */}
+        <div className="px-5 py-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 bg-white/30 dark:bg-zinc-950/20 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{restaurant.logo}</span>
+            <div>
+              <h5 className="text-[15px] font-extrabold">{restaurant.name}</h5>
+              <p className="text-[10px] opacity-60">{table.number} • {restaurant.city}</p>
             </div>
           </div>
+          <div className="flex gap-1.5">
+            <button onClick={callWaiter} className={`p-2 rounded-full text-xs font-bold transition ${waiterCalled ? 'bg-amber-500 text-white' : 'bg-black/5 dark:bg-white/10 hover:bg-black/10'}`} title={isRTL ? 'استدعاء نادل' : 'Call Waiter'}>
+              <Bell size={15} />
+            </button>
+            <button onClick={() => onSetLang(lang === 'ar' ? 'en' : 'ar')} className="text-[10px] font-bold bg-black/5 dark:bg-white/10 px-2.5 py-1 rounded-full">
+              {lang === 'ar' ? 'EN' : 'AR'}
+            </button>
+          </div>
+        </div>
 
-          {/* Waiter notification */}
-          <AnimatePresence>
-            {waiterCalled && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-4 mt-2 p-2 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-center text-[10px] font-bold text-amber-700">
-                {isRTL ? '✅ تم استدعاء النادل - سيأتي إليك قريباً' : '✅ Waiter called - coming soon!'}
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Waiter notification */}
+        <AnimatePresence>
+          {waiterCalled && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mx-4 mt-2 p-3 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-center text-[11px] font-bold text-amber-700 shadow-sm">
+              {isRTL ? '✅ تم استدعاء النادل - سيأتي إليك قريباً' : '✅ Waiter called - coming soon!'}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 pb-24">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-28">
             <AnimatePresence mode="wait">
               {orderPlaced ? (
                 <motion.div key="tracking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 py-4">
@@ -256,19 +250,18 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
             </AnimatePresence>
           </div>
 
-          {/* Bottom cart bar */}
-          {!orderPlaced && (
-            <div className="absolute bottom-3 inset-x-3 z-20">
-              <button onClick={() => setShowCart(!showCart)} className="w-full flex items-center justify-between rounded-full py-3 px-5 text-white text-xs font-bold shadow-lg" style={{ backgroundColor: theme.primary }}>
-                <div className="flex items-center gap-2">
-                  <ShoppingBag size={14} />
-                  <span>{cartCount} {isRTL ? 'منتجات' : 'items'}</span>
-                </div>
-                <span>{(subtotal + tax + service).toLocaleString()} {restaurant.currency}</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Bottom cart bar */}
+        {!orderPlaced && (
+          <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-30 px-4 pb-4 pt-2 bg-gradient-to-t from-white/90 dark:from-zinc-950/90 to-transparent">
+            <button onClick={() => setShowCart(!showCart)} className="w-full flex items-center justify-between rounded-full py-3.5 px-5 text-white text-sm font-bold shadow-lg" style={{ backgroundColor: theme.primary }}>
+              <div className="flex items-center gap-2">
+                <ShoppingBag size={16} />
+                <span>{cartCount} {isRTL ? 'منتج' : 'items'}</span>
+              </div>
+              <span>{(subtotal + tax + service).toLocaleString()} {restaurant.currency}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

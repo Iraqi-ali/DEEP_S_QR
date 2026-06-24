@@ -2,11 +2,11 @@
  * QR Menu & Table System - Main Application
  * Clean architecture with API-backed data persistence
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard, Table as TableIcon, Salad, ChefHat,
-  Palette, TrendingUp, Settings, Smartphone, ChevronLeft
+  Palette, TrendingUp, Settings, ChevronLeft
 } from 'lucide-react';
 
 import type { ActiveTab, ThemeMode, Lang, Restaurant, Table, MenuItem, Order, NotificationPayload, OrderItem } from './types';
@@ -22,7 +22,6 @@ import OrdersView from './components/OrdersView';
 import ThemesView from './components/ThemesView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
-import CustomerSimulatorView from './components/CustomerSimulatorView';
 import GuestView from './components/GuestView';
 
 export default function App() {
@@ -36,13 +35,22 @@ export default function App() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
   const [activeThemeId, setActiveThemeId] = useState('theme-sunset');
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
-  const [selectedSimulatorTableId, setSelectedSimulatorTableId] = useState('tb-1');
   const [notification, setNotification] = useState<NotificationPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperUser, setIsSuperUser] = useState(false);
-  const [isGuestMode, setIsGuestMode] = useState(false);
-  const [guestTableId, setGuestTableId] = useState<string | null>(null);
+  const guestRef = useRef<{ tableId: string } | null>(null);
   const [lastKnownOrderIds, setLastKnownOrderIds] = useState<Set<string>>(new Set());
+
+  // Detect guest mode synchronously from URL (before any async ops)
+  if (!guestRef.current) {
+    const p = new URLSearchParams(window.location.search);
+    const tid = p.get('tableId');
+    if (tid) {
+      guestRef.current = { tableId: tid };
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+  const isGuestMode = !!guestRef.current;
 
   // ── Derived ───────────────────────────────────────────────
   const t = TRANSLATIONS[lang];
@@ -81,23 +89,15 @@ export default function App() {
     api.saveSettings({ theme }).catch(() => {});
   }, [theme]);
 
-  // ── QR deep-link handler ──────────────────────────────────
+  // ── QR deep-link handler - ensure table exists ────────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tableId = params.get('tableId');
-    if (tableId) {
-      setGuestTableId(tableId);
-      setIsGuestMode(true);
-      setTables(prev => {
-        if (prev.some(tb => tb.id === tableId)) return prev;
-        const num = tableId.replace('tb-', '').replace('table-', '').split('-')[0];
-        const newTable: Table = { id: tableId, number: num || 'X', capacity: 4, status: 'ordering', qrCodeSeed: tableId };
-        api.createTable(newTable).catch(() => {});
-        return [...prev, newTable];
-      });
-      setSelectedSimulatorTableId(tableId);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    if (!guestRef.current) return;
+    const tableId = guestRef.current.tableId;
+    setTables(prev => {
+      if (prev.some(tb => tb.id === tableId)) return prev;
+      const num = tableId.replace('tb-', '').replace('table-', '').split('-')[0];
+      return [...prev, { id: tableId, number: num || 'X', capacity: 4, status: 'ordering', qrCodeSeed: tableId }];
+    });
   }, []);
 
   // ── Poll for new orders (dashboard only) ──────────────────
@@ -167,9 +167,8 @@ export default function App() {
   };
 
   const handleSimulateScan = (tableId: string) => {
-    setSelectedSimulatorTableId(tableId);
-    setActiveTab('customer-simulator');
-    setTables(prev => prev.map(tb => tb.id === tableId && tb.status === 'empty' ? { ...tb, status: 'ordering' } : tb));
+    // Open guest view by setting tableId query param
+    window.open(`/?tableId=${tableId}`, '_blank');
   };
 
   const handleAddMenuItem = (item: Omit<MenuItem, 'id'>) => {
@@ -273,7 +272,6 @@ export default function App() {
   };
 
   const renderView = () => {
-    const activeTable = tables.find(tb => tb.id === selectedSimulatorTableId) || tables[0];
     const filteredMenu = filterMenuByRestaurant(menuItems);
 
     switch (activeTab) {
@@ -291,8 +289,6 @@ export default function App() {
         return <ReportsView orders={orders} menuItems={menuItems} lang={lang} />;
       case 'settings':
         return <SettingsView restaurants={restaurants} activeRestaurantId={activeRestaurantId} onSelectRestaurant={handleSelectRestaurant} onUpdateRestaurant={handleUpdateRestaurant} onAddRestaurant={handleAddRestaurant} onDeleteRestaurant={handleDeleteRestaurant} lang={lang} onSetLang={handleSetLang} theme={theme} onSetTheme={handleSetTheme} onResetData={handleResetData} triggerNotification={setNotification} isSuperUser={isSuperUser} onSetSuperUser={setIsSuperUser} />;
-      case 'customer-simulator':
-        return <CustomerSimulatorView restaurant={currentRestaurant} table={activeTable} menuItems={filteredMenu} activeTheme={currentTheme} onSubmitOrder={handleSubmitCustomerOrder} lang={lang} onSetLang={handleSetLang} />;
       default:
         return null;
     }
@@ -307,7 +303,6 @@ export default function App() {
     { tab: 'themes' as ActiveTab, icon: Palette, label: isRTL ? 'الثيمات' : 'Themes' },
     { tab: 'reports' as ActiveTab, icon: TrendingUp, label: isRTL ? 'التقارير' : 'Reports' },
     { tab: 'settings' as ActiveTab, icon: Settings, label: t.tabSettings },
-    { tab: 'customer-simulator' as ActiveTab, icon: Smartphone, label: isRTL ? 'محاكي' : 'Simulator' },
   ];
 
   if (loading && !isGuestMode) {
@@ -322,14 +317,15 @@ export default function App() {
   }
 
   // ── Guest Mode: Standalone customer QR view ───────────────
-  if (isGuestMode && guestTableId) {
-    const guestTable = tables.find(tb => tb.id === guestTableId) || { id: guestTableId, number: '?', capacity: 4, status: 'ordering', qrCodeSeed: guestTableId };
+  if (isGuestMode && guestRef.current) {
+    const gid = guestRef.current.tableId;
+    const guestTable = tables.find(tb => tb.id === gid) || { id: gid, number: '?', capacity: 4, status: 'ordering', qrCodeSeed: gid };
     const filteredMenu = filterMenuByRestaurant(menuItems);
     return (
       <GuestView
         restaurant={currentRestaurant}
         table={guestTable}
-        menuItems={filteredMenu}
+        menuItems={filteredMenu.length > 0 ? filteredMenu : menuItems}
         activeTheme={currentTheme}
         lang={lang}
         onSetLang={(l) => { setLang(l); api.saveSettings({ lang: l }).catch(() => {}); }}
@@ -340,19 +336,13 @@ export default function App() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f2f2f7] p-2 text-slate-800 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100 sm:p-4 md:p-6 lg:p-8 font-sans relative overflow-hidden">
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-400/10 blur-[120px] rounded-full dark:bg-blue-900/5" />
-      <div className="pointer-events-none absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-purple-400/10 blur-[120px] rounded-full dark:bg-purple-900/5" />
-
-      {/* Tablet frame */}
-      <div className="relative flex h-[840px] w-full max-w-[1080px] flex-col overflow-hidden rounded-[2.2rem] border border-white/60 bg-white/40 shadow-2xl backdrop-blur-2xl dark:border-zinc-800/60 dark:bg-zinc-950/40 transition-all duration-300 shadow-black/5" dir={isRTL ? 'rtl' : 'ltr'}>
-        <DynamicIsland notification={notification} onClear={() => setNotification(null)} lang={lang} />
+    <div className="min-h-screen bg-[#f2f2f7] text-slate-800 transition-colors duration-500 dark:bg-zinc-950 dark:text-zinc-100 font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
+      <DynamicIsland notification={notification} onClear={() => setNotification(null)} lang={lang} />
 
         {/* Back button */}
         {activeTab !== 'dashboard' && (
-          <div className="absolute top-[48px] z-20" style={{ left: isRTL ? 'auto' : '24px', right: isRTL ? '24px' : 'auto' }}>
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setActiveTab('dashboard')} className="flex h-8 items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold shadow-sm backdrop-blur-md hover:bg-white dark:bg-zinc-850 dark:text-zinc-200 dark:hover:bg-zinc-800 border border-slate-100 dark:border-zinc-700/40">
+          <div className="px-4 pt-3 max-w-5xl mx-auto">
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setActiveTab('dashboard')} className="flex h-8 items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold shadow-sm backdrop-blur-md hover:bg-white dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 border border-slate-100 dark:border-zinc-700/40">
               <ChevronLeft size={14} className={isRTL ? 'rotate-180' : ''} />
               <span>{t.back}</span>
             </motion.button>
@@ -360,7 +350,7 @@ export default function App() {
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 pt-12 pb-28 md:px-10">
+        <div className="px-4 pt-4 pb-28 md:px-8 max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.3, ease: 'easeOut' }}>
               {renderView()}
@@ -369,8 +359,8 @@ export default function App() {
         </div>
 
         {/* Bottom navigation */}
-        <div className="absolute bottom-5 inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
-          <div className="pointer-events-auto flex items-center justify-around rounded-[26px] bg-white/80 p-1.5 shadow-xl border border-slate-200/50 backdrop-blur-xl dark:bg-zinc-900/80 dark:border-zinc-800/60 w-full max-w-[760px]">
+        <div className="fixed bottom-0 inset-x-0 z-30 flex justify-center px-4 pb-4 pt-2 bg-gradient-to-t from-[#f2f2f7] dark:from-zinc-950 to-transparent">
+          <div className="flex items-center justify-around rounded-2xl bg-white/90 p-1.5 shadow-lg border border-slate-200/50 backdrop-blur-xl dark:bg-zinc-900/90 dark:border-zinc-800/60 w-full max-w-2xl">
             {navItems.map(({ tab, icon: Icon, label }) => (
               <button key={tab} onClick={() => setActiveTab(tab)} className={`flex flex-col items-center gap-1 rounded-2xl py-2 px-3 transition-all ${activeTab === tab ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200'}`}>
                 <Icon size={16} />
@@ -378,11 +368,6 @@ export default function App() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Home indicator */}
-        <div className="absolute bottom-1.5 inset-x-0 flex justify-center pointer-events-none">
-          <div className="h-1 w-28 rounded-full bg-slate-300 dark:bg-zinc-700/60" />
         </div>
       </div>
     </div>
