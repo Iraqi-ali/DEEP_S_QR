@@ -453,6 +453,14 @@ export const TRANSLATIONS = {
     // Reports
     reportsTitle: 'تقارير المبيعات',
     reportsDesc: 'تحليل المبيعات والإحصائيات.',
+    revenueTrend: 'الإيرادات',
+    salesByCategory: 'المبيعات حسب التصنيف',
+    bestsellersList: 'الأكثر مبيعاً',
+    // Orders/Kitchen
+    orderNo: 'طلب #',
+    subtotal: 'المجموع الفرعي',
+    totalAmount: 'الإجمالي',
+    orderNotes: 'ملاحظات الطلب',
     // General
     addSuccess: 'تمت الإضافة',
     deleteSuccess: 'تم الحذف',
