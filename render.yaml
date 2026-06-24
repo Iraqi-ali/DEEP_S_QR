@@ -1,0 +1,23 @@
+# Render Blueprint - QR Menu & Table System
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: qr-menu-system
+    env: node
+    region: frankfurt  # أقرب للشرق الأوسط
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/settings
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+
+    # Persistent disk for SQLite database
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1

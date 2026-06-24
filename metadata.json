@@ -1,0 +1,6 @@
+{
+  "name": "QR Menu & Table System",
+  "description": "نظام منيو كي ار تفاعلي للمطاعم مع 20 ثيم بصرى مخصص، وإدارة طاولات، وتتبع طلبات المطبخ، ومحاكي الزبائن.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
