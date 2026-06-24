@@ -39,8 +39,8 @@ export default function App() {
   const [isSuperUser, setIsSuperUser] = useState(false);
   const guestRef = useRef<{ tableId: string } | null>(null);
   const prevTableStatuses = useRef<Record<string, string>>({});
+  const lastKnownOrderIds = useRef<Set<string>>(new Set());
   const contentRef = useRef<HTMLDivElement>(null);
-  const [lastKnownOrderIds, setLastKnownOrderIds] = useState<Set<string>>(new Set());
 
   // Scroll to top on tab change
   useEffect(() => { contentRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [activeTab]);
@@ -107,28 +107,33 @@ export default function App() {
     if (isGuestMode || loading) return;
     const poll = setInterval(async () => {
       try {
-        const [fresh, freshTables] = await Promise.all([api.getOrders(), api.getTables()]);
+        const [freshOrders, freshTables] = await Promise.all([api.getOrders(), api.getTables()]);
 
-        // Check new orders
-        const newIds = new Set(fresh.map(o => o.id));
-        const diff = [...newIds].filter(id => !lastKnownOrderIds.has(id));
-        if (diff.length > 0 && lastKnownOrderIds.size > 0) {
-          const newOrder = fresh.find(o => diff.includes(o.id));
+        // Always refresh orders for display
+        setOrders(freshOrders);
+        setTables(freshTables);
+
+        // Check for new orders using ref (avoids stale closure)
+        const newIds = new Set(freshOrders.map(o => o.id));
+        const known = lastKnownOrderIds.current;
+        const diff = [...newIds].filter(id => !known.has(id));
+        if (diff.length > 0 && known.size > 0) {
+          const newOrder = freshOrders.find(o => diff.includes(o.id));
           if (newOrder) {
+            const tabelNum = freshTables.find(t => t.id === newOrder.tableId)?.number || '?';
             const isBeforeMode = currentRestaurant.paymentMode === 'before';
-            if (isBeforeMode) {
-              setNotification({ title: isRTL ? '💳 طلب بانتظار الدفع!' : '💳 Payment Required!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'} - اذهب للمطبخ لتأكيد الدفع` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'} - Go to Kitchen to confirm`, type: 'warning' });
-            } else {
-              setNotification({ title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!', subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`, type: 'success' });
-            }
-            setOrders(fresh);
-            setTables(prev => prev.map(tb => tb.id === newOrder.tableId ? { ...tb, status: 'occupied' } : tb));
+            setNotification({
+              title: isBeforeMode ? (isRTL ? '💳 طلب بانتظار الدفع!' : '💳 Payment Required!') : (isRTL ? '🔔 طلب جديد!' : '🔔 New Order!'),
+              subtitle: isRTL ? `طاولة ${tabelNum}` : `Table ${tabelNum}`,
+              type: isBeforeMode ? 'warning' : 'success'
+            });
+            // Mark table as occupied
             api.updateTable(newOrder.tableId, { status: 'occupied' }).catch(() => {});
           }
         }
-        setLastKnownOrderIds(newIds);
+        lastKnownOrderIds.current = newIds;
 
-        // Check waiter calls (table status changed to 'waiting')
+        // Check waiter calls
         freshTables.forEach(t => {
           const prev = prevTableStatuses.current[t.id];
           if (prev && prev !== 'waiting' && t.status === 'waiting') {
@@ -136,11 +141,10 @@ export default function App() {
           }
           prevTableStatuses.current[t.id] = t.status;
         });
-        setTables(freshTables);
       } catch {}
-    }, 4000);
+    }, 3000);
     return () => clearInterval(poll);
-  }, [isGuestMode, loading]);
+  }, [isGuestMode, loading, currentRestaurant.paymentMode, isRTL]);
 
   // ── Handlers ──────────────────────────────────────────────
   const notify = useCallback((title: string, subtitle?: string, type: NotificationPayload['type'] = 'success') => {
