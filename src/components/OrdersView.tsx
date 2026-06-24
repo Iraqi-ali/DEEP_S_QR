@@ -403,24 +403,22 @@ export default function OrdersView({
                 {/* Totals & Taxes */}
                 <div className="space-y-1.5 border-b border-dashed border-zinc-300 pb-4 font-sans text-[11px]">
                   <div className="flex justify-between">
-                    <span>SUBTOTAL:</span>
-                    <span className="font-mono">{selectedReceiptOrder.subtotal.toFixed(2)}</span>
+                    <span>{isRTL ? 'المجموع الفرعي' : 'SUBTOTAL'}:</span>
+                    <span className="font-mono">{selectedReceiptOrder.subtotal.toLocaleString()} {currentRestaurant.currency}</span>
                   </div>
                   <div className="flex justify-between text-zinc-500">
-                    <span>VAT (15%):</span>
-                    <span className="font-mono">+{selectedReceiptOrder.tax.toFixed(2)}</span>
+                    <span>{isRTL ? 'ضريبة' : 'TAX'}:</span>
+                    <span className="font-mono">+{selectedReceiptOrder.tax.toLocaleString()} {currentRestaurant.currency}</span>
                   </div>
                   {selectedReceiptOrder.service > 0 && (
                     <div className="flex justify-between text-zinc-500">
-                      <span>SERVICE CHARGE:</span>
-                      <span className="font-mono">+{selectedReceiptOrder.service.toFixed(2)}</span>
+                      <span>{isRTL ? 'رسوم خدمة' : 'SERVICE'}:</span>
+                      <span className="font-mono">+{selectedReceiptOrder.service.toLocaleString()} {currentRestaurant.currency}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm font-black border-t border-dashed border-zinc-300 pt-2 text-zinc-950 font-mono">
-                    <span>TOTAL AMOUNT:</span>
-                    <span>
-                      {selectedReceiptOrder.total.toFixed(2)} {currentRestaurant.currency}
-                    </span>
+                    <span>{isRTL ? 'الإجمالي' : 'TOTAL'}:</span>
+                    <span>{selectedReceiptOrder.total.toLocaleString()} {currentRestaurant.currency}</span>
                   </div>
                 </div>
 
@@ -435,7 +433,7 @@ export default function OrdersView({
                   </div>
 
                   <p className="text-[10px] font-bold text-zinc-500 tracking-tight uppercase">
-                    {isRTL ? 'شكراً لزيارتكم وطاب يومكم بالهناء الشديد!' : 'Thank you for dining with us!'}
+                    {isRTL ? 'شكراً لزيارتكم - نسخة الزبون 🧾' : 'Thank you - Customer Copy 🧾'}
                   </p>
                 </div>
               </div>

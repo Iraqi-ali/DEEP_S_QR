@@ -44,9 +44,9 @@ export const INITIAL_RESTAURANTS: Restaurant[] = [
 // ── الطاولات ────────────────────────────────────────────────
 export const INITIAL_TABLES: Table[] = [
   { id: 'tb-1', number: 'طاولة 1', capacity: 2, status: 'empty', qrCodeSeed: 'table-1-seed-992' },
-  { id: 'tb-2', number: 'طاولة 2', capacity: 4, status: 'ordering', qrCodeSeed: 'table-2-seed-811' },
+  { id: 'tb-2', number: 'طاولة 2', capacity: 4, status: 'occupied', qrCodeSeed: 'table-2-seed-811' },
   { id: 'tb-3', number: 'طاولة VIP', capacity: 6, status: 'empty', qrCodeSeed: 'table-3-seed-104' },
-  { id: 'tb-4', number: 'طاولة عائلية', capacity: 8, status: 'eating', qrCodeSeed: 'table-4-seed-443' },
+  { id: 'tb-4', number: 'طاولة عائلية', capacity: 8, status: 'occupied', qrCodeSeed: 'table-4-seed-443' },
   { id: 'tb-5', number: 'طاولة خارجية', capacity: 4, status: 'empty', qrCodeSeed: 'table-5-seed-729' },
   { id: 'tb-6', number: 'طاولة 6', capacity: 4, status: 'empty', qrCodeSeed: 'table-6-seed-331' },
   { id: 'tb-delivery', number: '🚀 طلبات خارجية', capacity: 99, status: 'empty', qrCodeSeed: 'delivery-seed-001' }
