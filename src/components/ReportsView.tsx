@@ -272,7 +272,7 @@ export default function ReportsView({
                     {qty}
                   </td>
                   <td className="px-6 py-4 font-mono font-black text-emerald-600 dark:text-emerald-400">
-                    {rev.toFixed(2)} {isRTL ? 'ريال' : 'SAR'}
+                    {rev.toLocaleString()} {isRTL ? 'د.ع' : 'IQD'}
                   </td>
                 </tr>
               ))}
