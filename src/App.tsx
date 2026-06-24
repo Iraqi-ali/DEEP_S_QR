@@ -38,7 +38,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isSuperUser, setIsSuperUser] = useState(false);
   const guestRef = useRef<{ tableId: string } | null>(null);
+  const prevTableStatuses = useRef<Record<string, string>>({});
+  const contentRef = useRef<HTMLDivElement>(null);
   const [lastKnownOrderIds, setLastKnownOrderIds] = useState<Set<string>>(new Set());
+
+  // Scroll to top on tab change
+  useEffect(() => { contentRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [activeTab]);
 
   // Detect guest mode synchronously from URL (before any async ops)
   if (!guestRef.current) {
