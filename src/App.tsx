@@ -102,7 +102,6 @@ export default function App() {
   }, []);
 
   // ── Poll for new orders & waiter calls (dashboard only) ──
-  const prevTableStatuses = useRef<Record<string, string>>({});
 
   useEffect(() => {
     if (isGuestMode || loading) return;
