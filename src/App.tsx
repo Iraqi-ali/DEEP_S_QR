@@ -23,6 +23,7 @@ import ThemesView from './components/ThemesView';
 import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
 import CustomerSimulatorView from './components/CustomerSimulatorView';
+import GuestView from './components/GuestView';
 
 export default function App() {
   // ── State ─────────────────────────────────────────────────
@@ -39,6 +40,9 @@ export default function App() {
   const [notification, setNotification] = useState<NotificationPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperUser, setIsSuperUser] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [guestTableId, setGuestTableId] = useState<string | null>(null);
+  const [lastKnownOrderIds, setLastKnownOrderIds] = useState<Set<string>>(new Set());
 
   // ── Derived ───────────────────────────────────────────────
   const t = TRANSLATIONS[lang];
@@ -82,16 +86,47 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const tableId = params.get('tableId');
     if (tableId) {
+      setGuestTableId(tableId);
+      setIsGuestMode(true);
       setTables(prev => {
         if (prev.some(tb => tb.id === tableId)) return prev;
         const num = tableId.replace('tb-', '').replace('table-', '').split('-')[0];
-        return [...prev, { id: tableId, number: num || 'X', capacity: 4, status: 'ordering', qrCodeSeed: tableId }];
+        const newTable: Table = { id: tableId, number: num || 'X', capacity: 4, status: 'ordering', qrCodeSeed: tableId };
+        api.createTable(newTable).catch(() => {});
+        return [...prev, newTable];
       });
       setSelectedSimulatorTableId(tableId);
-      setActiveTab('customer-simulator');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  // ── Poll for new orders (dashboard only) ──────────────────
+  useEffect(() => {
+    if (isGuestMode || loading) return;
+    const poll = setInterval(async () => {
+      try {
+        const fresh = await api.getOrders();
+        const newIds = new Set(fresh.map(o => o.id));
+        const diff = [...newIds].filter(id => !lastKnownOrderIds.has(id));
+        if (diff.length > 0 && lastKnownOrderIds.size > 0) {
+          const newOrder = fresh.find(o => diff.includes(o.id));
+          if (newOrder) {
+            setNotification({
+              title: isRTL ? '🔔 طلب جديد!' : '🔔 New Order!',
+              subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`,
+              type: 'success'
+            });
+            // Refresh data
+            setOrders(fresh);
+            const updatedTables = await api.getTables();
+            setTables(updatedTables);
+          }
+        }
+        setLastKnownOrderIds(newIds);
+      } catch {}
+    }, 5000);
+    return () => clearInterval(poll);
+  }, [isGuestMode, loading, lastKnownOrderIds, isRTL, tables]);
 
   // ── Handlers ──────────────────────────────────────────────
   const notify = useCallback((title: string, subtitle?: string, type: NotificationPayload['type'] = 'success') => {
@@ -275,7 +310,7 @@ export default function App() {
     { tab: 'customer-simulator' as ActiveTab, icon: Smartphone, label: isRTL ? 'محاكي' : 'Simulator' },
   ];
 
-  if (loading) {
+  if (loading && !isGuestMode) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f2f2f7] dark:bg-zinc-950">
         <div className="flex flex-col items-center gap-3">
@@ -283,6 +318,23 @@ export default function App() {
           <span className="text-sm text-slate-500">{isRTL ? 'جاري التحميل...' : 'Loading...'}</span>
         </div>
       </div>
+    );
+  }
+
+  // ── Guest Mode: Standalone customer QR view ───────────────
+  if (isGuestMode && guestTableId) {
+    const guestTable = tables.find(tb => tb.id === guestTableId) || { id: guestTableId, number: '?', capacity: 4, status: 'ordering', qrCodeSeed: guestTableId };
+    const filteredMenu = filterMenuByRestaurant(menuItems);
+    return (
+      <GuestView
+        restaurant={currentRestaurant}
+        table={guestTable}
+        menuItems={filteredMenu}
+        activeTheme={currentTheme}
+        lang={lang}
+        onSetLang={(l) => { setLang(l); api.saveSettings({ lang: l }).catch(() => {}); }}
+        apiBase="/api"
+      />
     );
   }
 
