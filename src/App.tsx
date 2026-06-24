@@ -339,12 +339,15 @@ export default function App() {
         {/* Bottom navigation */}
         <div className="fixed bottom-0 inset-x-0 z-30 flex justify-center px-4 pb-4 pt-2 bg-gradient-to-t from-[#f2f2f7] dark:from-zinc-950 to-transparent">
           <div className="flex items-center justify-around rounded-2xl bg-white/90 p-1.5 shadow-lg border border-slate-200/50 backdrop-blur-xl dark:bg-zinc-900/90 dark:border-zinc-800/60 w-full max-w-2xl">
-            {navItems.map(({ tab, icon: Icon, label }) => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`flex flex-col items-center gap-1 rounded-2xl py-2 px-3 transition-all ${activeTab === tab ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200'}`}>
-                <Icon size={16} />
-                <span className="text-[9px] font-bold tracking-tight">{label}</span>
-              </button>
-            ))}
+            {navItems.map(({ tab, icon: Icon, label }) => {
+              const isActive = activeTab === tab;
+              return (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={'flex flex-col items-center gap-1 rounded-2xl py-2 px-3 transition-all ' + (isActive ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200')}>
+                  <Icon size={16} />
+                  <span className="text-[9px] font-bold tracking-tight">{label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
