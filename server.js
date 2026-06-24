@@ -5,6 +5,7 @@
 import express from 'express';
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,7 +18,14 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // ── Database Setup ─────────────────────────────────────────
-const db = new Database(path.join(__dirname, 'restaurant.db'));
+// Use RENDER_DISK_PATH if available (Render persistent disk), otherwise local dir
+const dataDir = process.env.RENDER_DISK_PATH || __dirname;
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+const dbPath = path.join(dataDir, 'restaurant.db');
+
+console.log(`📁 Database path: ${dbPath}`);
+
+const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 

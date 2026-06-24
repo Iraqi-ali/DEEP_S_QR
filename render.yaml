@@ -5,19 +5,17 @@ services:
   - type: web
     name: qr-menu-system
     env: node
-    region: frankfurt  # أقرب للشرق الأوسط
+    region: frankfurt
     plan: starter
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install --build-from-source && npm run build
+    startCommand: node server.js
     healthCheckPath: /api/settings
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: "3000"
-
-    # Persistent disk for SQLite database
+      - key: RENDER_DISK_PATH
+        value: /var/data
     disk:
       name: sqlite-data
-      mountPath: /opt/render/project/src
+      mountPath: /var/data
       sizeGB: 1
