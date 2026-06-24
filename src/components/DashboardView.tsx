@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'motion/react';
-import { TrendingUp, Users, ChefHat, Award, Table as TableIcon, CheckCircle, Clock, CreditCard } from 'lucide-react';
+import { TrendingUp, Users, ChefHat, Award, Table as TableIcon, CheckCircle, Clock, CreditCard, Flame } from 'lucide-react';
 import { Order, MenuItem, Table, Restaurant, Lang } from '../types';
 import { TRANSLATIONS } from '../data';
 
