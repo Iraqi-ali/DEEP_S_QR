@@ -2,7 +2,7 @@
  * GuestView - Standalone Customer QR Page 🇮🇶
  * What customers see when scanning a table QR code
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ArrowRight, ArrowLeft, CheckCircle, Bell, Clock, ChefHat, Check } from 'lucide-react';
 import type { MenuItem, Table, Restaurant, MenuTheme, OrderItem, Order, Lang } from '../types';
@@ -73,15 +73,18 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
   const subtotal = cartArr.reduce((s, c) => s + c.item.price * c.qty, 0);
   const tax = subtotal * restaurant.taxRate;
   const service = subtotal > 0 ? restaurant.serviceCharge : 0;
-  const orderCounterRef = useRef(parseInt(typeof localStorage !== 'undefined' ? localStorage.getItem('order_counter') || '100' : '100'));
+  const [orderCounter, setOrderCounter] = useState(() => {
+    try { return parseInt(localStorage.getItem('order_counter') || '100'); } catch { return 100; }
+  });
 
   const placeOrder = async () => {
     if (cartCount === 0) return;
-    orderCounterRef.current++;
-    try { localStorage.setItem('order_counter', String(orderCounterRef.current)); } catch {}
+    const next = orderCounter + 1;
+    setOrderCounter(next);
+    try { localStorage.setItem('order_counter', String(next)); } catch {}
     const items = cartArr.map(c => ({ menuItemId: c.item.id, quantity: c.qty, priceAtOrder: c.item.price, notes: c.notes || '' }));
     const order = {
-      id: `order-${orderCounterRef.current}`,
+      id: `order-${next}`,
       tableId: table.id,
       restaurantId: restaurant.id,
       items: items.map((it, idx) => ({ id: `oi-${idx}-${Date.now()}`, ...it })),
