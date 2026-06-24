@@ -248,7 +248,7 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
                       const qty = inCart?.qty || 0;
                       return (
                         <div key={item.id} className="p-3 bg-white/50 dark:bg-zinc-900/30 rounded-2xl flex items-center gap-3">
-                          <span className="text-3xl shrink-0">{item.image}</span>
+                          <span className="text-3xl shrink-0">{item.imageUrl ? <img src={item.imageUrl} className="w-10 h-10 rounded-xl object-cover" /> : item.image}</span>
                           <div className="flex-1 min-w-0">
                             <h6 className="text-[13px] font-extrabold truncate">{isRTL ? item.nameAr : item.nameEn}</h6>
                             <p className="text-[10px] opacity-50 truncate">{isRTL ? item.descriptionAr : item.descriptionEn}</p>

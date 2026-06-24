@@ -46,9 +46,18 @@ export default function MenuView({
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState(CATEGORY_GROUPS[0]);
   const [image, setImage] = useState('🍔');
+  const [imageUrl, setImageUrl] = useState('');
   const [descAr, setDescAr] = useState('');
   const [descEn, setDescEn] = useState('');
   const [isPopular, setIsPopular] = useState(false);
+
+  const FOOD_ICONS = [
+    '🍔','🍕','🍟','🌭','🍿','🥪','🥙','🌮','🌯','🥗',
+    '🍖','🍗','🥩','🥓','🍢','🍡','🍣','🍤','🦪','🍱',
+    '🧆','🥘','🍲','🥣','🫕','🍝','🍜','🍛','🍚','🥟',
+    '🥐','🍞','🥖','🧀','🥚','🥞','🧇','🍩','🍪','🎂',
+    '🍰','🧁','🥧','🍫','🍬','🍭','🍯','🥜','🍵','☕',
+  ];
 
   const t = TRANSLATIONS[lang];
   const isRTL = lang === 'ar';
@@ -71,6 +80,7 @@ export default function MenuView({
       price: parsedPrice,
       category,
       image: image || '🍔',
+      imageUrl: imageUrl.trim() || undefined,
       descriptionAr: descAr.trim(),
       descriptionEn: descEn.trim(),
       available: true,
@@ -171,16 +181,31 @@ export default function MenuView({
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  أيقونة/رمز الوجبة
+                  أيقونة الطبق
                 </label>
-                <input
-                  type="text"
+                <select
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
-                  placeholder="🍕 or 🥪"
                   className="w-full rounded-xl border border-slate-200/80 bg-slate-50/50 py-2 px-3 text-xs font-semibold outline-none transition focus:border-blue-500 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
-                />
+                >
+                  {FOOD_ICONS.map(icon => (
+                    <option key={icon} value={icon}>{icon} {icon}</option>
+                  ))}
+                </select>
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                رابط صورة الطبق (اختياري)
+              </label>
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/dish.jpg"
+                className="w-full rounded-xl border border-slate-200/80 bg-slate-50/50 py-2 px-3 text-xs font-semibold outline-none transition focus:border-blue-500 focus:bg-white dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+              />
             </div>
 
             <div className="space-y-1">
@@ -303,7 +328,7 @@ export default function MenuView({
                     <tr key={item.id} className="hover:bg-slate-50/30 dark:hover:bg-zinc-900/10 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl p-1 bg-slate-50 rounded-xl dark:bg-zinc-950/50">{item.image}</span>
+                          <span className="text-2xl p-1 bg-slate-50 rounded-xl dark:bg-zinc-950/50">{item.imageUrl ? <img src={item.imageUrl} className="w-8 h-8 rounded-lg object-cover" /> : item.image}</span>
                           <div>
                             <p className="font-display font-extrabold text-slate-900 dark:text-white">
                               {isRTL ? item.nameAr : item.nameEn}

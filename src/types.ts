@@ -43,6 +43,7 @@ export interface MenuItem {
   price: number;
   category: string;
   image: string;
+  imageUrl?: string;
   descriptionAr: string;
   descriptionEn: string;
   available: boolean;
