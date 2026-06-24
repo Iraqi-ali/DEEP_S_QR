@@ -87,6 +87,7 @@ export default function GuestView({ restaurant, table, menuItems, activeTheme, l
     };
     try {
       await fetch(`${apiBase}/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
+      await fetch(`${apiBase}/tables/${table.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'occupied' }) });
       setCurrentOrderId(order.id);
       setOrderStatus('pending');
       setOrderPlaced(true);

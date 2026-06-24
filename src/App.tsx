@@ -112,10 +112,10 @@ export default function App() {
               subtitle: isRTL ? `طاولة ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}` : `Table ${tables.find(t => t.id === newOrder.tableId)?.number || '?'}`,
               type: 'success'
             });
-            // Refresh data
             setOrders(fresh);
-            const updatedTables = await api.getTables();
-            setTables(updatedTables);
+            // تحديث حالة الطاولة تلقائياً إلى مشغولة
+            setTables(prev => prev.map(tb => tb.id === newOrder.tableId ? { ...tb, status: 'occupied' } : tb));
+            api.updateTable(newOrder.tableId, { status: 'occupied' }).catch(() => {});
           }
         }
         setLastKnownOrderIds(newIds);
